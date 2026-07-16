@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chassis -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+/* =====================================================
+   PRESENTATION CHASSIS — style-invariant base styles
+   Fixed 1920×1080 canvas scaled to fit any viewport.
+   Customize colors, fonts, and chrome via :root tokens.
+   ===================================================== */
+
+/* ---------- Universal reset ---------- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Theme tokens (override in your deck's CSS) ---------- */
+:root {
+    color-scheme: light;
+
+    --background:      #ffffff;
+    --foreground:      #111111;
+    --card:            #f5f5f5;
+    --card-foreground: var(--foreground);
+    --accent:          #c94a3d;
+    --accent-foreground: #ffffff;
+
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --border:           color-mix(in srgb, var(--foreground) 12%, transparent);
+
+    --font-display: Georgia, serif;
+    --font-body: -apple-system, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Reveal animation */
+    --reveal-duration: 0.8s;
+    --reveal-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-distance: 28px;
+
+    /* Chrome (nav dots, keyboard hint) */
+    --nav-dot-size: 9px;
+    --nav-dot-radius: 50%;
+    --nav-dot-color: var(--foreground);
+    --nav-dot-active-color: var(--accent);
+    --nav-dot-opacity: 0.4;
+}
+
+/* ---------- Viewport lock + scroll snap ---------- */
+html, body { height: 100%; overflow-x: hidden; }
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* ---------- Type scale ----------
+   Fixed px sizes on a 1920×1080 canvas. The canvas is scaled to fit
+   any viewport via transform, so these sizes are absolute within the
+   design surface — no responsive units needed. */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 36px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 120px; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -0.01em; }
+h3 { font-size: 44px; line-height: 1.2; }
+.eyebrow {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+ul, ol { padding-left: 48px; display: flex; flex-direction: column; gap: 24px; }
+li::marker { color: var(--accent); }
+
+/* ---------- Slide structure ----------
+   .slide is the authored 1920×1080 artboard.
+   The chassis wraps it in viewport + scale layers at runtime. */
+.slide-viewport {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: block;
+    position: relative;
+    background: var(--background);
+    isolation: isolate;
+    z-index: 1;
+}
+
+.slide-scale {
+    width: 1920px;
+    height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+    transform-origin: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+}
+
+.slide {
+    width: 1920px;
+    height: 1080px;
+    padding: 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    background: transparent;
+}
+
+
+/* ---------- Image defaults ---------- */
+img, .image-container {
+    max-width: 100%;
+    max-height: 540px;
+    object-fit: contain;
+}
+
+/* ---------- Reveal primitives ----------
+   Driven by chassis.js via the Web Animations API, not CSS transitions.
+   Put .reveal* or .step on ANY element — author CSS on the same element
+   (opacity, transform, transition, filter) never conflicts, because
+   WAAPI animations live in the animation cascade origin and win over
+   normal author declarations. The .dN stagger classes below still apply
+   to theme-authored CSS animations via animation-delay.
+
+   Variants: .reveal (fade + up), .reveal-left, .reveal-right,
+   .reveal-scale, .reveal-blur. .step stays hidden until the user
+   advances forward. Don't combine .step with .reveal* on the same
+   element. */
+
+/* FOUC guard: hide reveals until chassis.js marks the document ready. */
+:root:not(.reveals-ready) .reveal,
+:root:not(.reveals-ready) .reveal-left,
+:root:not(.reveals-ready) .reveal-right,
+:root:not(.reveals-ready) .reveal-scale,
+:root:not(.reveals-ready) .reveal-blur,
+:root:not(.reveals-ready) .step {
+    opacity: 0;
+}
+:root:not(.reveals-ready) .reveal-blur { filter: blur(10px); }
+
+/* ---------- Stagger delays (.d1 … .d8) ---------- */
+.slide.visible .d1 { transition-delay: 0.10s; animation-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.25s; animation-delay: 0.25s; }
+.slide.visible .d3 { transition-delay: 0.40s; animation-delay: 0.40s; }
+.slide.visible .d4 { transition-delay: 0.55s; animation-delay: 0.55s; }
+.slide.visible .d5 { transition-delay: 0.70s; animation-delay: 0.70s; }
+.slide.visible .d6 { transition-delay: 0.85s; animation-delay: 0.85s; }
+.slide.visible .d7 { transition-delay: 1.00s; animation-delay: 1.00s; }
+.slide.visible .d8 { transition-delay: 1.15s; animation-delay: 1.15s; }
+
+/* ---------- Nav dots ----------
+   Default: right-center (vertical stack on right edge).
+   Override with <body data-nav="bottom | top-right | hidden">. */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1.5vw, 1.4rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vh, 0.8rem);
+    z-index: 50;
+}
+
+body[data-nav="bottom"] .nav-dots {
+    right: auto;
+    top: auto;
+    bottom: clamp(1rem, 2.5vh, 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+body[data-nav="top-right"] .nav-dots {
+    right: clamp(1rem, 2.5vw, 2rem);
+    top: clamp(1rem, 2.5vh, 2rem);
+    transform: none;
+    flex-direction: row;
+}
+
+body[data-nav="hidden"] .nav-dots { display: none; }
+
+body[data-nav="bottom"] .keyboard-hint {
+    left: clamp(1rem, 2vw, 1.5rem);
+    transform: none;
+}
+
+.nav-dots button {
+    width: var(--nav-dot-size);
+    height: var(--nav-dot-size);
+    border-radius: var(--nav-dot-radius);
+    border: 1.5px solid var(--nav-dot-color);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: var(--nav-dot-opacity);
+}
+.nav-dots button:hover { opacity: 0.85; transform: scale(1.15); }
+.nav-dots button:focus-visible {
+    outline: 2px solid var(--nav-dot-active-color);
+    outline-offset: 3px;
+    opacity: 1;
+}
+.nav-dots button.active {
+    background: var(--nav-dot-active-color);
+    border-color: var(--nav-dot-active-color);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ---------- Keyboard hint ---------- */
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.keyboard-hint kbd {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.9em;
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--background);
+    margin: 0 0.15em;
+}
+
+/* ---------- Credit line ---------- */
+.chassis-credit {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.02em;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.chassis-credit .chassis-credit-emoji {
+    font-style: normal;
+    margin: 0 0.15em;
+}
+
+body[data-nav="bottom"] .chassis-credit {
+    left: auto;
+    right: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ---------- Custom cursor ---------- */
+.chassis-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--accent);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+.chassis-cursor.visible { opacity: 1; }
+body.artifact-editor-editing .chassis-cursor { display: none; }
+
+@media (hover: none) {
+    .chassis-cursor { display: none; }
+}
+
+body.chassis-cursor-active:not(.artifact-editor-editing),
+body.chassis-cursor-active:not(.artifact-editor-editing) * { cursor: none; }
+
+/* ---------- Opt-outs ---------- */
+body[data-no-chrome] .nav-dots,
+body[data-no-chrome] .keyboard-hint,
+body[data-no-chrome] .chassis-credit,
+body[data-no-chrome] .chassis-cursor,
+body[data-no-chrome] .artifact-editor-toggle { display: none; }
+
+:fullscreen .keyboard-hint,
+:fullscreen .chassis-credit,
+:fullscreen .artifact-editor-toggle { display: none; }
+
+@media (hover: none) {
+    .keyboard-hint,
+    .chassis-credit { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 560px) {
+    .nav-dots,
+    .keyboard-hint,
+    .chassis-credit,
+    .chassis-cursor { display: none; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* ---------- Print (PDF export) ---------- */
+@media print {
+    .nav-dots, .keyboard-hint, .chassis-credit, .chassis-cursor { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    html { scroll-snap-type: none; }
+    .slide-viewport {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+    }
+    .slide-scale {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .slide {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+</style>
+<script>
+/* =====================================================
+   PRESENTATION CHASSIS — slide controller
+   Auto-initializes on DOMContentLoaded.
+   Exposes window.slides for programmatic control.
+   ===================================================== */
+(function () {
+    'use strict';
+
+    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+    const STEP_SELECTOR = '.step';
+    const ALL_REVEAL_SELECTOR = REVEAL_SELECTOR + ', ' + STEP_SELECTOR;
+    const VIEWPORT_CLASS = 'slide-viewport';
+    const SCALE_CLASS = 'slide-scale';
+
+    function _detectLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        return (param || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+
+    class SlidePresentation {
+        constructor() {
+            this.slides = Array.from(document.querySelectorAll('.slide'));
+            if (this.slides.length === 0) return;
+
+            // Ensure every slide has an id so hashes + anchor links work.
+            // Author-defined ids are preserved; the rest get slide-N (1-indexed).
+            this.slides.forEach((slide, idx) => {
+                if (!slide.id) slide.id = `slide-${idx + 1}`;
+            });
+            this.viewports = this._setupViewports();
+            this.scales = this.viewports.map((viewport) => viewport.querySelector(`.${SCALE_CLASS}`));
+
+            // Hide every reveal element BEFORE lifting the CSS FOUC guard.
+            // After this, .reveals-ready is on <html>, so CSS no longer hides
+            // reveals — inline styles keep them hidden until JS animates them.
+            this._setupReveals();
+
+            this.navDotsContainer = this._ensureNavDots();
+            this.keyboardHint = this._ensureKeyboardHint();
+            this.credit = this._ensureCredit();
+
+            this._setupCanvasScale();
+            this._setupIntersectionObserver();
+            this._setupKeyboardNav();
+            this._setupWheelNav();
+            this._setupTouchNav();
+            this._setupViewportSync();
+            this._buildNavDots();
+            this._setupHashNav();
+            this._setupCursor();
+            this._setupPrintSettling();
+
+            // If URL has a matching hash, start there; otherwise start at slide 0.
+            const initial = this._slideIndexFromHash(location.hash);
+            this.currentSlide = initial >= 0 ? initial : 0;
+            if (this.currentSlide !== 0) {
+                this._scrollToSlide(this.currentSlide, 'auto');
+            }
+            // Reveal initial slide immediately (observer may miss it on load).
+            const first = this.slides[this.currentSlide];
+            first.classList.add('visible');
+            this._playSlideReveals(first);
+            this._updateNavDots();
+        }
+
+        /* ---------- Viewport scaffolding ----------
+           Authors write .slide as the 1920×1080 artboard. The chassis wraps
+           that authored section in viewport and scale layers. */
+        _setupViewports() {
+            return this.slides.map((slide) => {
+                const existingScale = slide.parentElement?.classList.contains(SCALE_CLASS)
+                    ? slide.parentElement
+                    : null;
+                const existingViewport = existingScale?.parentElement?.classList.contains(VIEWPORT_CLASS)
+                    ? existingScale.parentElement
+                    : null;
+                if (existingViewport) {
+                    this._syncViewportBackground(slide, existingViewport);
+                    return existingViewport;
+                }
+
+                const viewport = document.createElement('div');
+                viewport.className = VIEWPORT_CLASS;
+                const scale = document.createElement('div');
+                scale.className = SCALE_CLASS;
+
+                slide.parentNode.insertBefore(viewport, slide);
+                viewport.appendChild(scale);
+                scale.appendChild(slide);
+                this._syncViewportBackground(slide, viewport);
+
+                return viewport;
+            });
+        }
+
+        _syncViewportBackground(slide, viewport) {
+            const style = getComputedStyle(slide);
+            const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
+            const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
+            if (hasBackgroundImage || hasBackgroundColor) {
+                viewport.style.background = style.background;
+            } else {
+                viewport.style.background = '';
+            }
+            slide.style.background = 'transparent';
+        }
+
+        /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
+        _ensureNavDots() {
+            let el = document.getElementById('navDots');
+            if (!el) {
+                el = document.createElement('nav');
+                el.id = 'navDots';
+                el.className = 'nav-dots';
+                el.setAttribute('aria-label', 'Slide navigation');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureKeyboardHint() {
+            let el = document.querySelector('.keyboard-hint');
+            if (!el) {
+                const i18n = {
+                    en: { navigate: 'navigate', restart: 'restart', fullscreen: 'fullscreen' },
+                    es: { navigate: 'navegar',   restart: 'inicio',   fullscreen: 'fullscreen' },
+                    fr: { navigate: 'naviguer',  restart: 'début',    fullscreen: 'fullscreen' },
+                    de: { navigate: 'blättern',  restart: 'anfang',   fullscreen: 'vollbild' },
+                    pt: { navigate: 'navegar',   restart: 'início',   fullscreen: 'fullscreen' },
+                    ja: { navigate: '移動',      restart: '先頭',      fullscreen: '全画面' },
+                    ko: { navigate: '이동',      restart: '처음',      fullscreen: '전체화면' },
+                    zh: { navigate: '翻页',      restart: '重置',      fullscreen: '全屏' },
+                    it: { navigate: 'navigare',  restart: 'inizio',   fullscreen: 'fullscreen' },
+                    nl: { navigate: 'bladeren',  restart: 'begin',    fullscreen: 'vollscherm' },
+                };
+                const t = i18n[_detectLang()] || i18n.en;
+                el = document.createElement('div');
+                el.className = 'keyboard-hint';
+                el.innerHTML = `<kbd>←</kbd> <kbd>→</kbd> ${t.navigate} &middot; <kbd>R</kbd> ${t.restart} &middot; <kbd>F</kbd> ${t.fullscreen}`;
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureCredit() {
+            let el = document.querySelector('.chassis-credit');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'chassis-credit';
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML = 'Dave Bryan J. Beatingo';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        /* ---------- Reveal engine ----------
+           Reveals are driven by the Web Animations API instead of CSS
+           transitions. This lets authors put .reveal* / .step on any
+           element: animation values live in the animation cascade origin
+           and win over normal author declarations, so no wrapper element
+           is required to isolate the chassis from author CSS.
+
+           State per slide:
+           - "hidden":  inline opacity/transform/filter from the 'from'
+                        keyframe of the variant. Set on init and on
+                        forward re-entry.
+           - "played":  animation is running or has run; the class
+                        `reveals-played` on the slide makes playback
+                        idempotent so observer re-fires (resize,
+                        fullscreen) don't restart the animation.
+           - "settled": animation canceled, inline styles cleared. Used
+                        for backward entries (we skip the animation and
+                        show the final state instantly) and for print. */
+
+        _setupReveals() {
+            // Lift the CSS FOUC guard first so getComputedStyle reads each
+            // element's natural opacity, not the guard's blanket opacity: 0.
+            // No paint occurs mid-task — inline hidden styles are applied
+            // before the browser yields, so there is no visible flash.
+            document.documentElement.classList.add('reveals-ready');
+            this.slides.forEach((slide) => {
+                slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                    el._targetOpacity = parseFloat(getComputedStyle(el).opacity);
+                    this._applyHiddenStyle(el);
+                });
+            });
+        }
+
+        _setupPrintSettling() {
+            // Browsers snapshot the document for print/PDF export. WAAPI
+            // animations don't necessarily complete in that snapshot, so
+            // settle every slide to its final state first. After printing,
+            // reset — but only for slides that haven't already been viewed,
+            // so the audience experience picks up where it left off.
+            window.addEventListener('beforeprint', () => {
+                this.slides.forEach((slide) => this._settleSlide(slide));
+            });
+        }
+
+        _readTokens() {
+            const cs = getComputedStyle(document.documentElement);
+            const rawDuration = parseFloat(cs.getPropertyValue('--reveal-duration'));
+            const duration = Number.isFinite(rawDuration) ? rawDuration * 1000 : 800;
+            const ease = cs.getPropertyValue('--reveal-ease').trim() || 'cubic-bezier(0.16, 1, 0.3, 1)';
+            const distance = cs.getPropertyValue('--reveal-distance').trim() || '28px';
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            return {
+                duration: reducedMotion ? 1 : duration,
+                ease,
+                distance,
+            };
+        }
+
+        _getRevealDelay(el) {
+            // Use getAttribute('class') rather than el.className: on SVG
+            // elements, `.className` is an SVGAnimatedString (not a string)
+            // and calling .match on it throws. getAttribute is uniform
+            // across HTML and SVG.
+            const classes = el.getAttribute('class') || '';
+            const m = classes.match(/\bd([1-8])\b/);
+            if (!m) return 0;
+            // Matches CSS .dN: d1 = 100ms, d2 = 250ms, +150ms per step.
+            return 100 + (parseInt(m[1], 10) - 1) * 150;
+        }
+
+        _getRevealKeyframes(el, distance) {
+            const to = el._targetOpacity ?? 1;
+            if (el.classList.contains('reveal-left')) {
+                return [
+                    { opacity: 0, transform: `translateX(calc(-1 * ${distance}))` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-right')) {
+                return [
+                    { opacity: 0, transform: `translateX(${distance})` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-scale')) {
+                return [
+                    { opacity: 0, transform: 'scale(0.88)' },
+                    { opacity: to, transform: 'scale(1)' },
+                ];
+            }
+            if (el.classList.contains('reveal-blur')) {
+                return [
+                    { opacity: 0, filter: 'blur(10px)' },
+                    { opacity: to, filter: 'blur(0)' },
+                ];
+            }
+            // Default: .reveal or .step (slide up + fade)
+            return [
+                { opacity: 0, transform: `translateY(${distance})` },
+                { opacity: to, transform: 'translateY(0)' },
+            ];
+        }
+
+        _applyHiddenStyle(el) {
+            const { distance } = this._readTokens();
+            const from = this._getRevealKeyframes(el, distance)[0];
+            if ('opacity' in from) el.style.opacity = from.opacity;
+            if ('transform' in from) el.style.transform = from.transform;
+            if ('filter' in from) el.style.filter = from.filter;
+        }
+
+        _clearHiddenStyle(el) {
+            el.style.opacity = '';
+            el.style.transform = '';
+            el.style.filter = '';
+        }
+
+        _cancelReveal(el) {
+            if (el._revealAnim) {
+                el._revealAnim.cancel();
+                el._revealAnim = null;
+            }
+        }
+
+        _playReveal(el, delayOverride) {
+            this._cancelReveal(el);
+            const { duration, ease, distance } = this._readTokens();
+            const delay = typeof delayOverride === 'number' ? delayOverride : this._getRevealDelay(el);
+            const keyframes = this._getRevealKeyframes(el, distance);
+            // fill: 'backwards' applies the 'from' keyframe during the
+            // stagger delay so the element stays hidden until its turn,
+            // without pinning the 'to' keyframe after the animation ends.
+            // This lets co-existing author CSS (e.g. a `.pulse` CSS
+            // animation on the same element) take over naturally once the
+            // entrance completes — otherwise our fill would mask anything
+            // the author wanted to happen post-reveal.
+            const anim = el.animate(keyframes, {
+                duration,
+                delay,
+                easing: ease,
+                fill: 'backwards',
+            });
+            el._revealAnim = anim;
+            // Safe to clear inline 'from' styles now — the animation's
+            // backwards-fill holds the element at the 'from' keyframe for
+            // the duration of any stagger delay.
+            this._clearHiddenStyle(el);
+        }
+
+        _playSlideReveals(slide) {
+            if (slide.classList.contains('reveals-played')) return;
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => this._playReveal(el));
+            // .step elements stay hidden until the user advances.
+        }
+
+        _resetSlideReveals(slide) {
+            // Forward re-entry: cancel in-flight animations, re-hide
+            // everything, and reset step state so the slide replays cleanly
+            // when the observer next adds .visible.
+            slide.classList.remove('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step.step-shown').forEach((el) => el.classList.remove('step-shown'));
+        }
+
+        _settleSlide(slide) {
+            // Print / PDF export: jump to the final state with everything
+            // shown, so every step appears in the exported document.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => el.classList.add('step-shown'));
+        }
+
+        _rewindSlide(slide) {
+            // Backward re-entry: show reveals instantly (no replay — the
+            // viewer already saw the intro) but hide every step, so the
+            // slide is positioned at the start of its stepped content and
+            // can be stepped through again.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => {
+                el.classList.remove('step-shown');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+        }
+
+        /* ---------- Navigation ----------
+           goTo scrolls to the target. Both forward-replay and backward-
+           rewind need to mutate the target BEFORE scrolling — while it's
+           still offscreen — so the viewer never sees the old state flash
+           into view. Resetting after the slide is in view causes a visible
+           "show then hide" blink; the IntersectionObserver fires too late
+           (80% threshold) to catch it. */
+        goTo(index) {
+            const clamped = Math.max(0, Math.min(this.slides.length - 1, index));
+            if (clamped === this.currentSlide) return;
+
+            const target = this.slides[clamped];
+            const goingForward = clamped > this.currentSlide;
+
+            if (target.classList.contains('visible')) {
+                if (goingForward) {
+                    // Forward replay: full reset so the observer can play reveals fresh.
+                    target.classList.remove('visible');
+                    this._resetSlideReveals(target);
+                } else {
+                    // Backward rewind: hide any shown steps so the slide
+                    // scrolls back in at the start of its stepped content.
+                    this._rewindSlide(target);
+                }
+            }
+
+            this._scrollToSlide(clamped, 'smooth');
+        }
+
+        _scrollToSlide(index, behavior) {
+            this.viewports[index]?.scrollIntoView({ behavior, block: 'start' });
+        }
+
+        _slideIndexFromHash(hash) {
+            if (!hash) return -1;
+            return this.slides.findIndex((s) => '#' + s.id === hash);
+        }
+
+        _syncHash() {
+            const slide = this.slides[this.currentSlide];
+            if (!slide || !slide.id) return;
+            const newHash = '#' + slide.id;
+            if (location.hash !== newHash) {
+                // replaceState — keeps the URL in sync without polluting history,
+                // so the browser back button exits the deck instead of stepping through slides.
+                try {
+                    history.replaceState(null, '', newHash);
+                } catch {
+                    // Sandboxed iframes (opaque origin, about:srcdoc) reject URL
+                    // mutation with a SecurityError. Hash sync is a nicety — an
+                    // unguarded throw here kills the observer callback before it
+                    // marks the slide visible and plays its reveals.
+                }
+            }
+        }
+
+        _setupHashNav() {
+            // React to external hash changes (anchor link clicks, back/forward if user uses pushState manually)
+            window.addEventListener('hashchange', () => {
+                const idx = this._slideIndexFromHash(location.hash);
+                if (idx >= 0 && idx !== this.currentSlide) this.goTo(idx);
+            });
+        }
+
+        /* ---------- Custom cursor ----------
+           Accent disc that follows the pointer, hidden after idle. */
+        _setupCursor() {
+            if (!matchMedia('(hover: hover)').matches) return;
+
+            const cursor = document.createElement('div');
+            cursor.className = 'chassis-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+            document.body.classList.add('chassis-cursor-active');
+
+            const half = 16;  // matches width/height / 2 in CSS
+            const IDLE_MS = 2500;
+            let idleTimer = null;
+
+            const show = () => {
+                cursor.classList.add('visible');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    cursor.classList.remove('visible');
+                }, IDLE_MS);
+            };
+            const hide = () => {
+                clearTimeout(idleTimer);
+                cursor.classList.remove('visible');
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate3d(${e.clientX - half}px, ${e.clientY - half}px, 0)`;
+                show();
+            });
+            document.addEventListener('mouseleave', hide);
+            document.addEventListener('mouseenter', show);
+        }
+
+        /* ---------- Fullscreen ---------- */
+        toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.();
+            }
+        }
+
+        next() { this.goTo(this.currentSlide + 1); }
+        prev() { this.goTo(this.currentSlide - 1); }
+        first() { this.goTo(0); }
+        last() { this.goTo(this.slides.length - 1); }
+
+        /* ---------- Step-aware advance / retreat ----------
+           advance() reveals the next .step on the current slide (if any),
+           otherwise advances to the next slide. retreat() hides the last
+           revealed step, otherwise goes back to the previous slide. */
+        advance() {
+            const current = this.slides[this.currentSlide];
+            const nextStep = current?.querySelector('.step:not(.step-shown)');
+            if (nextStep) {
+                nextStep.classList.add('step-shown');
+                // No stagger on click-reveal — the user's gesture is the trigger.
+                this._playReveal(nextStep, 0);
+                return;
+            }
+            this.next();
+        }
+        retreat() {
+            const current = this.slides[this.currentSlide];
+            const shown = current?.querySelectorAll('.step.step-shown');
+            if (shown && shown.length > 0) {
+                const last = shown[shown.length - 1];
+                last.classList.remove('step-shown');
+                this._cancelReveal(last);
+                this._applyHiddenStyle(last);
+                return;
+            }
+            this.prev();
+        }
+
+        /* ---------- Intersection observer ----------
+           Fire late (>= 80% in view) so reveals play on a settled slide.
+           This is the single source of truth for active-slide state.
+
+           Forward:  add .visible, play reveals. (goTo() has already reset
+                     the target to pre-reveal state if this is a re-visit,
+                     so the animation is fresh either way.)
+           Backward: add .visible, rewind to the start of the stepped
+                     content — reveals are shown instantly (no replay) and
+                     every step is hidden again so the viewer can step
+                     through it fresh. */
+        _setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const idx = this.viewports.indexOf(entry.target);
+                    if (idx < 0) return;
+                    const slide = this.slides[idx];
+
+                    if (idx === this.currentSlide) {
+                        // Same-slide re-fire (initial load, resize, fullscreen).
+                        if (!slide.classList.contains('visible')) {
+                            slide.classList.add('visible');
+                        }
+                        // Idempotent: only plays if not already marked played.
+                        this._playSlideReveals(slide);
+                        return;
+                    }
+
+                    const goingForward = idx > this.currentSlide;
+                    this.currentSlide = idx;
+                    this._updateNavDots();
+                    this._syncHash();
+
+                    slide.classList.add('visible');
+                    if (goingForward) {
+                        this._playSlideReveals(slide);
+                    } else {
+                        this._rewindSlide(slide);
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            this.viewports.forEach((viewport) => observer.observe(viewport));
+        }
+
+        /* ---------- Keyboard ---------- */
+        _setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                // Skip when user is editing text
+                if (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+                switch (e.key) {
+                    // Step-aware: consume steps first, then advance slides
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault(); this.advance(); break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault(); this.retreat(); break;
+                    // Slide-level: always skip past steps
+                    case 'PageDown':
+                        e.preventDefault(); this.next(); break;
+                    case 'PageUp':
+                        e.preventDefault(); this.prev(); break;
+                    case 'Home':
+                        e.preventDefault(); this.first(); break;
+                    case 'End':
+                        e.preventDefault(); this.last(); break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault(); this.toggleFullscreen(); break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault(); this.first(); break;
+                }
+            });
+        }
+
+        /* ---------- Wheel / trackpad ----------
+           ALWAYS preventDefault — letting any native wheel scroll through
+           races against scrollIntoView + mandatory snap, and blocks macOS
+           two-finger horizontal swipes from triggering browser back/forward.
+           Whichever axis has the larger magnitude wins, so vertical scroll
+           and horizontal trackpad swipes both drive advance/retreat. Lock
+           briefly after a gesture so trackpad inertia (continuous small
+           deltas) can't spam next(). */
+        _setupWheelNav() {
+            let locked = false;
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) return;                // preserve browser pinch-zoom (ctrl+wheel)
+                e.preventDefault();                   // block native scroll + horizontal back-swipe
+                if (locked) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (Math.abs(delta) < 20) return;     // ignore tiny flicks
+                locked = true;
+                if (delta > 0) this.advance(); else this.retreat();
+                setTimeout(() => { locked = false; }, 500);
+            }, { passive: false });
+        }
+
+        /* ---------- Touch / swipe ----------
+           Horizontal swipes advance / retreat slides; left = next, right =
+           prev (matches stories / carousel conventions). Dominantly
+           vertical swipes fall through to native scroll-snap so the
+           existing top/bottom behavior keeps working. A time budget
+           rejects slow pans that were really aborted scrolls. */
+        _setupTouchNav() {
+            const MIN_DISTANCE = 50;     // px — below this is a tap or jitter
+            const MAX_TIME = 600;        // ms — slower than this is a pan, not a swipe
+            const DOMINANCE = 1.2;       // horizontal must beat vertical by this factor
+
+            let startX = 0, startY = 0, startTime = 0;
+            let tracking = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('artifact-editor-editing')) { tracking = false; return; }
+                if (e.touches.length !== 1) { tracking = false; return; }
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                startTime = performance.now();
+                tracking = true;
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const ax = Math.abs(dx), ay = Math.abs(dy);
+                if (ax < MIN_DISTANCE) return;
+                if (ax < ay * DOMINANCE) return;
+                if (performance.now() - startTime > MAX_TIME) return;
+                if (dx < 0) this.advance(); else this.retreat();
+            }, { passive: true });
+
+            window.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+        }
+
+        /* ---------- Canvas scaling ----------
+           Each scaler holds a fixed 1920×1080 slide. Compute the
+           scale factor that fits it inside the viewport and apply via
+           CSS custom property. Runs on init, resize, and fullscreen. */
+        _setupCanvasScale() {
+            const CANVAS_W = 1920;
+            const CANVAS_H = 1080;
+            const scales = this.scales;
+
+            const update = () => {
+                const scale = Math.min(
+                    window.innerWidth / CANVAS_W,
+                    window.innerHeight / CANVAS_H
+                );
+                scales.forEach((el) => {
+                    el?.style.setProperty('--slide-scale', scale);
+                });
+            };
+
+            update();
+            window.addEventListener('resize', update);
+            document.addEventListener('fullscreenchange', () => {
+                requestAnimationFrame(update);
+            });
+        }
+
+        /* ---------- Viewport sync ----------
+           Resize / fullscreenchange → realign current slide. Each slide is
+           100vh, so a viewport height change leaves the existing scroll
+           position out of alignment with the slide top; scroll-snap doesn't
+           re-snap on its own. */
+        _setupViewportSync() {
+            const realign = () => {
+                requestAnimationFrame(() => {
+                    this._scrollToSlide(this.currentSlide, 'auto');
+                });
+            };
+            window.addEventListener('resize', realign);
+            document.addEventListener('fullscreenchange', realign);
+        }
+
+        /* ---------- Nav dots ---------- */
+        _buildNavDots() {
+            // Clear first — prevents duplicates when DOM is re-serialized/re-opened
+            this.navDotsContainer.innerHTML = '';
+            this.slides.forEach((slide, idx) => {
+                const dot = document.createElement('button');
+                dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+                if (idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.goTo(idx));
+                this.navDotsContainer.appendChild(dot);
+            });
+        }
+
+        _updateNavDots() {
+            const dots = this.navDotsContainer.querySelectorAll('button');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === this.currentSlide);
+            });
+        }
+    }
+
+    /* ---------- Auto-init ---------- */
+    function init() {
+        // Each slide canvas is its own editable host for the inline editor.
+        document.querySelectorAll('.slide').forEach(function (el) {
+            el.classList.add('artifact-editable');
+        });
+        window.slides = new SlidePresentation();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chassis -->
+    <title>Session 1: App Mindset | Student Edition</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+
+    <style>
+      :root {
+        --background: #0d0a1a;
+        --foreground: #f0eef6;
+        --accent: #a855f7;
+        --accent-secondary: #06b6d4;
+        --accent-foreground: #ffffff;
+        --card: #1e1536;
+        --card-foreground: #f0eef6;
+        --muted-foreground: rgba(240,238,246,0.6);
+        --border: rgba(168,85,247,0.2);
+        --font-display: 'Archivo Black', sans-serif;
+        --font-body: 'Space Grotesk', sans-serif;
+        --gradient-1: linear-gradient(135deg, #0d0a1a 0%, #1a0e2e 50%, #0d0a1a 100%);
+        --gradient-2: linear-gradient(135deg, #1a0e2e 0%, #2d1b4e 50%, #1a0e2e 100%);
+        --gradient-card: linear-gradient(135deg, #2d1b69 0%, #1e1145 100%);
+        --nav-dot-color: rgba(168,85,247,0.4);
+        --nav-dot-active-color: #a855f7;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body { background: var(--background); color: var(--foreground); }
+
+      h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; line-height: 1.1; }
+      p, li, span, td, th { font-family: var(--font-body); }
+
+      .slide {
+        background: var(--gradient-1);
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .section-number {
+        font-family: var(--font-display);
+        font-size: 180px;
+        color: rgba(168,85,247,0.08);
+        position: absolute;
+        top: 40px;
+        right: 80px;
+        line-height: 1;
+      }
+
+      .eyebrow {
+        font-family: var(--font-body);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 20px;
+      }
+
+      h1 { font-size: 120px; color: var(--foreground); }
+      h2 { font-size: 64px; color: var(--foreground); margin-bottom: 30px; }
+      h3 { font-size: 44px; color: var(--foreground); margin-bottom: 20px; }
+
+      p { font-size: 28px; line-height: 1.5; color: var(--muted-foreground); max-width: 900px; }
+      li { font-size: 28px; line-height: 1.6; color: var(--muted-foreground); margin-bottom: 12px; margin-left: 30px; }
+
+      .purple-card {
+        background: var(--gradient-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 40px;
+        margin-top: 30px;
+      }
+
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 30px; }
+
+      .grid-card {
+        background: var(--gradient-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 30px;
+      }
+      .grid-card h3 { font-size: 28px; margin-bottom: 12px; }
+      .grid-card p { font-size: 22px; }
+
+      .highlight { color: var(--accent); }
+      .highlight-cyan { color: var(--accent-secondary); }
+
+      .big-stat {
+        font-family: var(--font-display);
+        font-size: 140px;
+        color: var(--accent);
+        line-height: 1;
+      }
+
+      .qa-banner {
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        border-radius: 20px;
+        padding: 60px;
+        text-align: center;
+        margin-top: 30px;
+      }
+      .qa-banner h2 { color: #fff; margin-bottom: 16px; }
+      .qa-banner p { color: rgba(255,255,255,0.85); margin: 0 auto; }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 30px;
+        font-family: var(--font-body);
+      }
+      th {
+        background: rgba(168,85,247,0.15);
+        padding: 16px 20px;
+        text-align: left;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--accent);
+        border-bottom: 2px solid var(--border);
+      }
+      td {
+        padding: 14px 20px;
+        font-size: 22px;
+        color: var(--muted-foreground);
+        border-bottom: 1px solid rgba(168,85,247,0.1);
+      }
+
+      .img-placeholder {
+        background: linear-gradient(135deg, #2d1b69, #1a0e2e);
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted-foreground);
+        font-size: 20px;
+        min-height: 300px;
+      }
+
+      .tool-badge {
+        display: inline-block;
+        background: rgba(168,85,247,0.15);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 10px 24px;
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--accent);
+        margin: 6px 8px 6px 0;
+      }
+
+
+      .hero-title { font-size: 160px; line-height: 1.0; }
+      .subtitle { font-size: 36px; color: var(--muted-foreground); margin-top: 20px; }
+    </style>
+<style data-student-watermark>
+.slide::before {
+  content: "Application Development & Emerging Technologies";
+  position: fixed;
+  top: clamp(0.6rem, 1.2vh, 1rem);
+  right: clamp(1rem, 2vw, 1.5rem);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--muted-foreground);
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 50;
+}
+</style>
+  <style>
+    /* Stable, reusable visual references for interface and stack slides. */
+    .interface-reference {
+      width: 100%;
+      height: 500px;
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr) 48px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      background: #10131b;
+      box-shadow: 0 22px 55px rgba(0,0,0,.3);
+    }
+    .interface-reference--compact { height: 360px; }
+    .interface-reference__bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: #181c27;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      color: rgba(255,255,255,.72);
+      font-size: 15px;
+      letter-spacing: .02em;
+    }
+    .interface-reference__dots { display: flex; gap: 7px; }
+    .interface-reference__dots i {
+      width: 10px;
+      height: 10px;
+      display: block;
+      border-radius: 50%;
+      background: #fb7185;
+    }
+    .interface-reference__dots i:nth-child(2) { background: #facc15; }
+    .interface-reference__dots i:nth-child(3) { background: #4ade80; }
+    .interface-reference__body {
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: #0b0e14;
+    }
+    .interface-reference__body img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      object-position: center;
+    }
+    .interface-reference__caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 16px;
+      color: rgba(255,255,255,.8);
+      font-size: 15px;
+      line-height: 1.25;
+      background: #181c27;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .interface-reference__caption span:last-child {
+      flex: 0 0 auto;
+      color: var(--accent-secondary);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .interface-legend {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .interface-legend span {
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      background: rgba(255,255,255,.045);
+      color: var(--foreground);
+      font-size: 17px;
+      text-align: center;
+    }
+    .stack-path {
+      width: min(1500px, 100%);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 90px minmax(0, 1fr) 90px minmax(0, 1fr);
+      align-items: stretch;
+      margin: 34px auto 0;
+    }
+    .stack-node {
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+      box-shadow: 0 18px 38px rgba(0,0,0,.22);
+    }
+    .stack-node strong { color: var(--foreground); font-size: 27px; }
+    .stack-node small { color: var(--muted-foreground); font-size: 17px; line-height: 1.4; }
+    .stack-node__icon { font-size: 46px; line-height: 1; }
+    .stack-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      color: var(--accent-secondary);
+      font-size: 45px;
+      font-weight: 700;
+    }
+    .stack-arrow small { color: var(--muted-foreground); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+    .stack-support {
+      width: min(1500px, 100%);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 20px auto 0;
+    }
+    .stack-support div {
+      padding: 16px 20px;
+      border: 1px dashed rgba(255,255,255,.18);
+      border-radius: 14px;
+      color: var(--muted-foreground);
+      font-size: 18px;
+      text-align: left;
+    }
+    .stack-support strong { color: var(--foreground); }
+  </style>
+<style data-image-lightbox-styles>
+  .slide img[data-lightbox-ready] { cursor: zoom-in; transition: filter .18s ease, transform .18s ease; }
+  .slide img[data-lightbox-ready]:hover { filter: brightness(1.06); }
+  .slide img[data-lightbox-ready]:focus-visible { outline: 4px solid var(--accent-secondary); outline-offset: 5px; }
+  body.image-lightbox-open { overflow: hidden !important; }
+  .image-lightbox { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; padding: 58px 46px 38px; background: rgba(3,5,12,.94); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility .2s ease; }
+  .image-lightbox.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
+  .image-lightbox__figure { width: min(94vw, 1800px); height: min(88vh, 980px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; margin: 0; }
+  .image-lightbox__image { max-width: 94vw !important; max-height: 80vh !important; width: auto !important; height: auto !important; object-fit: contain !important; border: 1px solid rgba(255,255,255,.2); border-radius: 14px; background: #0b0e14; box-shadow: 0 28px 90px rgba(0,0,0,.65); cursor: zoom-out; }
+  .image-lightbox__caption { max-width: 1100px; color: rgba(255,255,255,.85); font: 500 17px/1.4 var(--font-body, sans-serif); text-align: center; }
+  .image-lightbox__close { position: fixed; top: 18px; right: 24px; width: 52px; height: 52px; display: grid; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(18,22,32,.9); color: #fff; font: 300 36px/1 sans-serif; cursor: pointer; }
+  .image-lightbox__close:hover, .image-lightbox__close:focus-visible { background: var(--accent); outline: none; }
+  @media (max-width: 760px) { .image-lightbox { padding: 72px 18px 28px; } .image-lightbox__image { max-width: 96vw !important; max-height: 76vh !important; } }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<section class="slide" style="background: radial-gradient(ellipse at 30% 50%, rgba(168,85,247,0.15) 0%, transparent 60%), var(--gradient-1); justify-content: center; align-items: center; text-align: center;">
+  <h1 class="hero-title reveal d2" style="font-size: 130px;">App<br><span class="highlight">Mindset</span></h1>
+  <p class="reveal d3" style="font-size: 32px; margin-top: 30px;">Application Development &amp; Emerging Technologies</p>
+  <p class="reveal d4" style="font-size: 22px; color: var(--accent); margin-top: 20px;">FlutterFlow + Supabase Track</p>
+  <p class="reveal d5" style="font-size: 18px; margin-top: 18px; padding: 8px 18px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: rgba(255,255,255,.78);">Student Edition - expanded lesson explanations</p>
+</section>
+
+<!-- SLIDE 2: What This Course Is About -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">The Big Picture</span>
+  <h2 class="reveal d2">What This Course<br>Is <span class="highlight">Really</span> About</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 30px; color: var(--foreground);">You will <strong>design, build, and ship a working responsive web app</strong> from scratch using modern no-code/low-code tools.</p>
+    <p style="margin-top: 16px;">Not theory. Not PowerPoint apps. Real, functional software that solves real problems.</p>
+  </div>
+</section>
+
+<!-- SLIDE 3: Course Journey Map -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">18 Weeks Roadmap</span>
+  <h2 class="reveal d2">Your Journey</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3>🧠 Prelim</h3>
+      <p>App Thinking, Planning, UI/UX Design</p>
+    </div>
+    <div class="grid-card">
+      <h3>🔨 Midterm</h3>
+      <p>FlutterFlow Foundations + Supabase Basics</p>
+    </div>
+    <div class="grid-card">
+      <h3>🔐 Semi-Final</h3>
+      <p>Auth, CRUD, Roles, Enhancements</p>
+    </div>
+    <div class="grid-card">
+      <h3>🚀 Final</h3>
+      <p>Testing, Docs, Presentation, Ship It</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: Final Project Preview -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">End Goal</span>
+  <h2 class="reveal d2">Your Final Output</h2>
+  <ul class="reveal d3">
+    <li>A <strong class="highlight">fully working app</strong> with login, database, and CRUD features</li>
+    <li>Built with <strong class="highlight-cyan">FlutterFlow</strong> (frontend) + <strong class="highlight">Supabase</strong> (backend)</li>
+    <li>Complete documentation and live demo presentation</li>
+    <li>Deployed and accessible on real devices</li>
+  </ul>
+</section>
+
+<!-- SLIDE 5: What is an App? -->
+<section class="slide" style="background: radial-gradient(ellipse at 70% 30%, rgba(6,182,212,0.1) 0%, transparent 50%), var(--gradient-1);">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Fundamentals</span>
+  <h2 class="reveal d2">What is an <span class="highlight">App</span>?</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 30px; color: var(--foreground);"><strong>Application (App)</strong> = A software program designed to perform a specific task or group of tasks for the user.</p>
+    <p style="margin-top: 16px;">Every app you use daily, from GCash to Facebook to Grab, someone had to think it up, design it, build it, and maintain it.</p>
+  </div>
+</section>
+
+<!-- SLIDE 6: Apps You Use Daily -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Real World</span>
+  <h2 class="reveal d2">Apps You Already Use</h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card" style="text-align:center;">
+      <h3>💬</h3>
+      <p style="font-size: 24px; color: var(--foreground);">Messenger</p>
+      <p>Communication</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>💸</h3>
+      <p style="font-size: 24px; color: var(--foreground);">GCash</p>
+      <p>Finance</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>🚗</h3>
+      <p style="font-size: 24px; color: var(--foreground);">Grab</p>
+      <p>Transportation</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>📱</h3>
+      <p style="font-size: 24px; color: var(--foreground);">TikTok</p>
+      <p>Entertainment</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>🛒</h3>
+      <p style="font-size: 24px; color: var(--foreground);">Shopee</p>
+      <p>E-commerce</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>📚</h3>
+      <p style="font-size: 24px; color: var(--foreground);">Canvas/LMS</p>
+      <p>Education</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: Types of Applications -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">App Types</span>
+  <h2 class="reveal d2">Types of Applications</h2>
+  <table class="reveal d3">
+    <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+    <tr><td><strong class="highlight">Mobile App</strong></td><td>Runs on phones/tablets</td><td>Instagram, Grab</td></tr>
+    <tr><td><strong class="highlight">Web App</strong></td><td>Runs in a browser</td><td>Gmail, Google Docs</td></tr>
+    <tr><td><strong class="highlight">Desktop App</strong></td><td>Installed on PC/Mac</td><td>VS Code, Photoshop</td></tr>
+    <tr><td><strong class="highlight">Hybrid/Cross-platform</strong></td><td>One codebase, multiple platforms</td><td>Flutter apps, React Native</td></tr>
+  </table>
+</section>
+
+<!-- SLIDE 8: Native vs Cross-Platform -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Development Approaches</span>
+  <h2 class="reveal d2">Native vs Cross-Platform</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="color: var(--accent);">Native</h3>
+      <p style="font-size: 24px; margin-top: 12px;">Built for ONE platform only</p>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">iOS → Swift/Objective-C</li>
+        <li style="font-size: 22px;">Android → Kotlin/Java</li>
+        <li style="font-size: 22px;">Best performance</li>
+        <li style="font-size: 22px;">Higher cost (2 codebases)</li>
+      </ul>
+    </div>
+    <div class="grid-card">
+      <h3 style="color: var(--accent-secondary);">Cross-Platform</h3>
+      <p style="font-size: 24px; margin-top: 12px;">ONE codebase, multiple platforms</p>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Flutter (Dart)</li>
+        <li style="font-size: 22px;">React Native (JavaScript)</li>
+        <li style="font-size: 22px;">Good performance</li>
+        <li style="font-size: 22px;">Faster development 🏆</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- STUDENT EXPLAINER: Choosing an app approach -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">In Plain Language</span>
+  <h2 class="reveal d2">The app type tells you <span class="highlight">where it runs</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="color: var(--accent);">Platform</h3>
+      <p style="font-size: 24px; margin-top: 12px;">A platform is the environment where people use the app: a phone, a browser, or a desktop computer.</p>
+      <p style="font-size: 22px; margin-top: 16px;">The same service can have several versions. Gmail, for example, has web and mobile apps.</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="color: var(--accent-secondary);">Why cross-platform?</h3>
+      <p style="font-size: 24px; margin-top: 12px;">A cross-platform tool lets one project target more than one platform.</p>
+      <p style="font-size: 22px; margin-top: 16px;">For this course, that means you can focus on solving the problem instead of maintaining separate Android, iOS, and web projects.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 22px; color: var(--accent);"><strong>Key idea:</strong> cross-platform saves development time, but you still test the app on every target device.</p>
+</section>
+
+<!-- SLIDE 9: Why Apps Matter -->
+<section class="slide" style="background: radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.12) 0%, transparent 60%), var(--gradient-1); align-items: center; text-align: center;">
+  <span class="eyebrow reveal d1">The Numbers</span>
+  <div class="big-stat reveal d2">8.93M</div>
+  <h3 class="reveal d3" style="font-size: 40px; margin-top: 20px;">Apps exist across all app stores (2024)</h3>
+  <p class="reveal d4" style="margin-top: 20px; text-align: center;">The app economy generated over <strong class="highlight">$935 billion</strong> in 2023. This is the industry you're learning to build for.</p>
+</section>
+
+<!-- SLIDE 10: App Development is a Skill -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Why Learn This</span>
+  <h2 class="reveal d2">App Dev = <span class="highlight">Career Power</span></h2>
+  <ul class="reveal d3">
+    <li><strong>Freelancing:</strong> Build apps for clients (₱30k-200k+ per project)</li>
+    <li><strong>Startups:</strong> Build your own product, be a technical co-founder</li>
+    <li><strong>Employment:</strong> App developers are in HIGH demand</li>
+    <li><strong>Problem Solving:</strong> Turn ideas into real solutions</li>
+    <li><strong>Portfolio:</strong> Show employers what you can actually build</li>
+  </ul>
+</section>
+
+<!-- SLIDE 12: How Apps Actually Work -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Under The Hood</span>
+  <h2 class="reveal d2">How Apps <span class="highlight-cyan">Actually</span> Work</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 28px; color: var(--foreground); text-align: center;">
+      <strong>USER</strong> → <span class="highlight">Frontend (UI)</span> → <span class="highlight-cyan">API</span> → <span class="highlight">Backend (Server)</span> → <span class="highlight-cyan">Database</span>
+    </p>
+    <p style="margin-top: 20px; text-align: center;">Every app follows this pattern. The user interacts with the frontend. The frontend talks to the backend. The backend stores/retrieves data.</p>
+  </div>
+</section>
+
+
+<!-- STUDENT EXPLAINER: Data flow example -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Worked Example</span>
+  <h2 class="reveal d2">One tap can trigger a complete <span class="highlight-cyan">data journey</span></h2>
+  <div class="purple-card reveal d3">
+    <ol style="margin: 0; padding-left: 42px; gap: 14px;">
+      <li style="font-size: 23px;"><strong>You tap "Log in"</strong> on the frontend.</li>
+      <li style="font-size: 23px;">The frontend sends your email and password through an <strong class="highlight-cyan">API request</strong>.</li>
+      <li style="font-size: 23px;">The backend checks the stored account information in the database.</li>
+      <li style="font-size: 23px;">The backend returns a success or error <strong class="highlight">response</strong>.</li>
+      <li style="font-size: 23px;">The frontend shows the home screen or an error message.</li>
+    </ol>
+  </div>
+  <p class="reveal d4" style="margin-top: 22px;">The user sees one action, but several parts cooperate behind the scenes.</p>
+</section>
+
+<!-- SLIDE 13: Frontend vs Backend -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Architecture</span>
+  <h2 class="reveal d2">Frontend vs Backend</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="color: var(--accent);">Frontend</h3>
+      <p style="font-size: 24px; margin-top: 12px;">What users SEE and TOUCH</p>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Buttons, screens, forms</li>
+        <li style="font-size: 22px;">Colors, fonts, layout</li>
+        <li style="font-size: 22px;">Animations, navigation</li>
+        <li style="font-size: 22px;">Our tool: <strong>FlutterFlow</strong></li>
+      </ul>
+    </div>
+    <div class="grid-card">
+      <h3 style="color: var(--accent-secondary);">Backend</h3>
+      <p style="font-size: 24px; margin-top: 12px;">What runs BEHIND the scenes</p>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Database (stores data)</li>
+        <li style="font-size: 22px;">Authentication (login)</li>
+        <li style="font-size: 22px;">Business logic, APIs</li>
+        <li style="font-size: 22px;">Our tool: <strong>Supabase</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14: What is an API? -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Key Concept</span>
+  <h2 class="reveal d2">What is an <span class="highlight">API</span>?</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 30px; color: var(--foreground);"><strong>API</strong> = Application Programming Interface</p>
+    <p style="margin-top: 16px; font-size: 26px;">Think of it as a <strong>waiter in a restaurant</strong>:</p>
+    <ul style="margin-top: 16px;">
+      <li style="font-size: 24px;">You (frontend) tell the waiter your order</li>
+      <li style="font-size: 24px;">The waiter (API) brings it to the kitchen (backend)</li>
+      <li style="font-size: 24px;">The kitchen prepares the food (processes data)</li>
+      <li style="font-size: 24px;">The waiter brings back your food (response)</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- STUDENT EXPLAINER: API request and response -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">API Vocabulary</span>
+  <h2 class="reveal d2">A request asks; a response <span class="highlight">answers</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="color: var(--accent-secondary);">Request</h3>
+      <p style="font-size: 24px; margin-top: 12px;">The app sends an instruction or asks for data.</p>
+      <p style="font-size: 22px; margin-top: 18px;"><strong>Example:</strong> "Give me all lost-item posts added today."</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="color: var(--accent);">Response</h3>
+      <p style="font-size: 24px; margin-top: 12px;">The backend returns data or explains what went wrong.</p>
+      <p style="font-size: 22px; margin-top: 18px;"><strong>Example:</strong> a list of posts, or an error saying the connection failed.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 22px; color: var(--muted-foreground);">APIs use agreed rules so two systems can exchange information without knowing each other's internal code.</p>
+</section>
+
+<!-- SLIDE 15: Traditional vs No-Code -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Development Spectrum</span>
+  <h2 class="reveal d2">How People Build Apps</h2>
+  <table class="reveal d3">
+    <tr><th>Approach</th><th>Code Level</th><th>Speed</th><th>Example</th></tr>
+    <tr><td><strong>Traditional</strong></td><td>100% code</td><td>Slow (months)</td><td>VS Code + Flutter</td></tr>
+    <tr><td><strong>Low-Code</strong></td><td>Visual + some code</td><td>Fast (weeks)</td><td>FlutterFlow ⭐</td></tr>
+    <tr><td><strong>No-Code</strong></td><td>Zero code</td><td>Very fast (days)</td><td>Adalo, Glide</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top: 20px; color: var(--accent);">We use FlutterFlow: the sweet spot between power and speed.</p>
+</section>
+
+<!-- SLIDE 16: Why FlutterFlow -->
+<section class="slide" style="background: radial-gradient(ellipse at 70% 50%, rgba(6,182,212,0.1) 0%, transparent 50%), var(--gradient-1);">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Our Frontend Tool</span>
+  <h2 class="reveal d2">Why <span class="highlight-cyan">FlutterFlow</span>?</h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card" style="text-align:center;">
+      <h3>🎨</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Visual Builder</p>
+      <p style="font-size: 20px;">Drag-and-drop UI design</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>📱</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Cross-Platform</p>
+      <p style="font-size: 20px;">Web-first project with responsive breakpoints</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>⚡</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Real Flutter</p>
+      <p style="font-size: 20px;">Generates production-ready code</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>🔗</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Integrations</p>
+      <p style="font-size: 20px;">Firebase, Supabase, APIs</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>🧪</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Test Mode</p>
+      <p style="font-size: 20px;">Preview instantly in browser</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3>🆓</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Free Tier</p>
+      <p style="font-size: 20px;">Perfect for students</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 17: FlutterFlow Interface Preview -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Preview</span>
+  <h2 class="reveal d2">FlutterFlow Builder Interface</h2>
+  <div class="interface-reference reveal d3" style="margin-top: 18px;">
+    <div class="interface-reference__bar">
+      <span class="interface-reference__dots"><i></i><i></i><i></i></span>
+      <span>FlutterFlow · App Builder workspace</span>
+    </div>
+    <div class="interface-reference__body">
+      <img src="assets/student-visuals/flutterflow-builder.avif" alt="Official FlutterFlow App Builder interface showing its navigation menu" />
+    </div>
+    <div class="interface-reference__caption">
+      <span>Use the left navigation to move between building, data, and project areas.</span>
+      <span>Official documentation</span>
+    </div>
+  </div>
+  <div class="interface-legend reveal d4">
+    <span>Navigation Menu</span><span>Toolbar</span><span>Canvas</span><span>Properties Panel</span>
+  </div>
+</section>
+
+<!-- SLIDE 18: Why Supabase -->
+<section class="slide" style="background: radial-gradient(ellipse at 30% 50%, rgba(168,85,247,0.1) 0%, transparent 50%), var(--gradient-1);">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Our Backend Tool</span>
+  <h2 class="reveal d2">Why <span class="highlight">Supabase</span>?</h2>
+  <div class="grid-2 reveal d3">
+    <div>
+      <ul>
+        <li><strong class="highlight">PostgreSQL Database</strong> - Industry standard, powerful</li>
+        <li><strong class="highlight">Authentication</strong> - Email, Google, social login built-in</li>
+        <li><strong class="highlight">Storage</strong> - File/image uploads</li>
+        <li><strong class="highlight">Realtime</strong> - Live data updates</li>
+        <li><strong class="highlight">Row Level Security</strong> - Built-in data protection</li>
+        <li><strong class="highlight">Free Tier</strong> - Generous for student projects</li>
+      </ul>
+    </div>
+    <div class="interface-reference interface-reference--compact">
+      <div class="interface-reference__bar">
+        <span class="interface-reference__dots"><i></i><i></i><i></i></span>
+        <span>Supabase · project dashboard</span>
+      </div>
+      <div class="interface-reference__body">
+        <img src="assets/student-visuals/supabase-dashboard.png" alt="Official Supabase dashboard interface with sidebar navigation and metrics" />
+      </div>
+      <div class="interface-reference__caption">
+        <span>Services stay organized in one project workspace.</span>
+        <span>Supabase project</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 19: Supabase Architecture -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">How It Works</span>
+  <h2 class="reveal d2">Supabase Architecture</h2>
+  <div class="stack-path reveal d3">
+    <div class="stack-node">
+      <span class="stack-node__icon">📱</span>
+      <strong>FlutterFlow App</strong>
+      <small>Collects input and displays results</small>
+    </div>
+    <div class="stack-arrow"><span>⇄</span><small>API</small></div>
+    <div class="stack-node">
+      <span class="stack-node__icon">⚡</span>
+      <strong class="highlight">Supabase Services</strong>
+      <small>Authenticates users and routes requests</small>
+    </div>
+    <div class="stack-arrow"><span>⇄</span><small>Query</small></div>
+    <div class="stack-node">
+      <span class="stack-node__icon">🗄️</span>
+      <strong class="highlight-cyan">PostgreSQL</strong>
+      <small>Stores structured application data</small>
+    </div>
+  </div>
+  <div class="stack-support reveal d4">
+    <div><strong>Alongside the database:</strong> Authentication, Storage, and Realtime services.</div>
+    <div><strong>Important:</strong> security policies decide which rows each user may access.</div>
+  </div>
+</section>
+
+
+<!-- STUDENT EXPLAINER: Responsibility split -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Who Does What?</span>
+  <h2 class="reveal d2">FlutterFlow builds the experience; Supabase manages the <span class="highlight">data</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="color: var(--accent-secondary);">FlutterFlow</h3>
+      <ul style="margin-top: 14px;">
+        <li style="font-size: 22px;">Screens and layouts</li>
+        <li style="font-size: 22px;">Buttons, forms, and navigation</li>
+        <li style="font-size: 22px;">Actions that send or request data</li>
+        <li style="font-size: 22px;">What the user sees after a response</li>
+      </ul>
+    </div>
+    <div class="grid-card">
+      <h3 style="color: var(--accent);">Supabase</h3>
+      <ul style="margin-top: 14px;">
+        <li style="font-size: 22px;">User accounts and login</li>
+        <li style="font-size: 22px;">Database tables and records</li>
+        <li style="font-size: 22px;">Files and uploaded images</li>
+        <li style="font-size: 22px;">Rules controlling who can access data</li>
+      </ul>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 22px;"><strong>Connection:</strong> FlutterFlow calls Supabase APIs, then turns the returned data into screens the user can understand.</p>
+</section>
+
+<!-- SLIDE 20: Our Tech Stack -->
+<section class="slide" style="align-items: center; text-align: center;">
+  <span class="eyebrow reveal d1">The Stack</span>
+  <h2 class="reveal d2">Our Toolkit for This Course</h2>
+  <div class="stack-path reveal d3">
+    <div class="stack-node">
+      <span class="stack-node__icon">🎨</span>
+      <strong>FlutterFlow</strong>
+      <small>Build screens, interactions, and navigation</small>
+    </div>
+    <div class="stack-arrow"><span>→</span><small>API calls</small></div>
+    <div class="stack-node">
+      <span class="stack-node__icon">🔐</span>
+      <strong class="highlight">Supabase</strong>
+      <small>Handle authentication, storage, and backend services</small>
+    </div>
+    <div class="stack-arrow"><span>→</span><small>Reads / writes</small></div>
+    <div class="stack-node">
+      <span class="stack-node__icon">🗃️</span>
+      <strong class="highlight-cyan">PostgreSQL</strong>
+      <small>Keep reliable, structured project data</small>
+    </div>
+  </div>
+  <div class="stack-support reveal d4">
+    <div><strong>Dart:</strong> optional custom logic when visual actions are not enough.</div>
+    <div><strong>Figma:</strong> optional planning and interface design before building.</div>
+  </div>
+</section>
+
+<!-- SLIDE 22: What Makes a Great App -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">App Quality</span>
+  <h2 class="reveal d2">What Makes a <span class="highlight">Great</span> App?</h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 48px;">🎯</h3>
+      <p style="font-size: 24px; color: var(--foreground); margin-top: 8px;"><strong>Solves a Problem</strong></p>
+      <p style="font-size: 20px;">Clear purpose, real value</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 48px;">✨</h3>
+      <p style="font-size: 24px; color: var(--foreground); margin-top: 8px;"><strong>Easy to Use</strong></p>
+      <p style="font-size: 20px;">Intuitive, no manual needed</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 48px;">🚀</h3>
+      <p style="font-size: 24px; color: var(--foreground); margin-top: 8px;"><strong>Fast & Reliable</strong></p>
+      <p style="font-size: 20px;">No crashes, quick loading</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 48px;">🎨</h3>
+      <p style="font-size: 24px; color: var(--foreground); margin-top: 8px;"><strong>Beautiful Design</strong></p>
+      <p style="font-size: 20px;">Clean, modern UI</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 48px;">🔒</h3>
+      <p style="font-size: 24px; color: var(--foreground); margin-top: 8px;"><strong>Secure</strong></p>
+      <p style="font-size: 20px;">Protects user data</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 48px;">♻️</h3>
+      <p style="font-size: 24px; color: var(--foreground); margin-top: 8px;"><strong>Maintainable</strong></p>
+      <p style="font-size: 20px;">Easy to update/improve</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 23: Good vs Bad App Examples -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Comparison</span>
+  <h2 class="reveal d2">Good App vs Bad App</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card" style="border-color: rgba(34,197,94,0.3);">
+      <h3 style="color: #22c55e;">✅ Good App (Grab)</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Clear purpose: get a ride</li>
+        <li style="font-size: 22px;">Simple: 3 taps to book</li>
+        <li style="font-size: 22px;">Real-time tracking</li>
+        <li style="font-size: 22px;">Multiple payment options</li>
+        <li style="font-size: 22px;">Rating system for safety</li>
+      </ul>
+    </div>
+    <div class="grid-card" style="border-color: rgba(239,68,68,0.3);">
+      <h3 style="color: #ef4444;">❌ Bad App (You've seen them)</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Unclear purpose</li>
+        <li style="font-size: 22px;">Confusing navigation</li>
+        <li style="font-size: 22px;">Crashes frequently</li>
+        <li style="font-size: 22px;">Ugly, outdated design</li>
+        <li style="font-size: 22px;">No error handling</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 24: The App Development Process -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Process</span>
+  <h2 class="reveal d2">App Development Lifecycle</h2>
+  <div class="purple-card reveal d3" style="text-align: center;">
+    <p style="font-size: 28px; color: var(--foreground); line-height: 2.2;">
+      <strong class="highlight">1. Ideation</strong> → What problem to solve?<br>
+      <strong class="highlight-cyan">2. Planning</strong> → Requirements, user flow, wireframes<br>
+      <strong class="highlight">3. Design</strong> → UI/UX, screens, navigation<br>
+      <strong class="highlight-cyan">4. Development</strong> → Build frontend + backend<br>
+      <strong class="highlight">5. Testing</strong> → Find and fix bugs<br>
+      <strong class="highlight-cyan">6. Deployment</strong> → Ship it to users<br>
+      <strong class="highlight">7. Maintenance</strong> → Update and improve
+    </p>
+  </div>
+</section>
+
+<!-- SLIDE 25: This Semester's Process -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Our Process</span>
+  <h2 class="reveal d2">How We'll Do It</h2>
+  <table class="reveal d3">
+    <tr><th>Phase</th><th>Period</th><th>Focus</th></tr>
+    <tr><td>Ideation + Planning</td><td>Weeks 1-3</td><td>Problem, users, requirements</td></tr>
+    <tr><td>Design</td><td>Weeks 3-4</td><td>Wireframes, UI/UX</td></tr>
+    <tr><td>Development</td><td>Weeks 5-14</td><td>Build with FlutterFlow + Supabase</td></tr>
+    <tr><td>Testing + Polish</td><td>Weeks 15-16</td><td>QA, bug fixes, documentation</td></tr>
+    <tr><td>Demo + Ship</td><td>Weeks 17-18</td><td>Present and submit</td></tr>
+  </table>
+</section>
+
+<!-- SLIDE 26: App Ideas by Category -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Inspiration</span>
+  <h2 class="reveal d2">App Ideas by Category</h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card">
+      <h3 style="font-size: 24px; color: var(--accent);">🏫 School</h3>
+      <p style="font-size: 20px;">Lost & found, event tracker, study group finder, complaint system</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 24px; color: var(--accent);">🏪 Business</h3>
+      <p style="font-size: 20px;">Inventory tracker, appointment booking, order management</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 24px; color: var(--accent);">🏥 Health</h3>
+      <p style="font-size: 20px;">Medicine reminder, fitness tracker, mental health journal</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 24px; color: var(--accent);">🌍 Community</h3>
+      <p style="font-size: 20px;">Barangay services, carpool matching, local events</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 24px; color: var(--accent);">📝 Productivity</h3>
+      <p style="font-size: 20px;">Budget tracker, habit builder, task manager</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 24px; color: var(--accent);">🎮 Fun/Social</h3>
+      <p style="font-size: 20px;">Recipe sharing, pet adoption board, campus confessions</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 27: What's Expected of You -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Expectations</span>
+  <h2 class="reveal d2">What I Expect From You</h2>
+  <ul class="reveal d3">
+    <li><strong class="highlight">Show up and participate</strong> - This is a hands-on course</li>
+    <li><strong class="highlight">Build every session</strong> - Not just watch, actually do it</li>
+    <li><strong class="highlight">Ask questions</strong> - No question is too simple</li>
+    <li><strong class="highlight">Help each other</strong> - Collaboration is encouraged</li>
+    <li><strong class="highlight">Submit on time</strong> - Deadlines are deadlines</li>
+    <li><strong class="highlight">Be creative</strong> - Don't just copy examples</li>
+  </ul>
+</section>
+
+<!-- SLIDE 28: Tools & Accounts Needed -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Setup</span>
+  <h2 class="reveal d2">Tools You'll Need</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="font-size: 28px; color: var(--accent);">Accounts (Free)</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Google Account (for FlutterFlow sign-in)</li>
+        <li style="font-size: 22px;">FlutterFlow account (Free plan)</li>
+        <li style="font-size: 22px;">Supabase account (email and password)</li>
+        <li style="font-size: 22px;">Figma account (optional, for mockups)</li>
+      </ul>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 28px; color: var(--accent-secondary);">Hardware</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Laptop/Desktop with Chrome</li>
+        <li style="font-size: 22px;">Stable internet connection</li>
+        <li style="font-size: 22px;">Phone or second browser window for responsive testing (optional)</li>
+        <li style="font-size: 22px;">Notebook for sketching</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 32: Grading Overview -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Assessment</span>
+  <h2 class="reveal d2">How You'll Be Graded</h2>
+  <table class="reveal d3">
+    <tr><th>Component</th><th>Weight</th><th>Description</th></tr>
+    <tr><td>Class Participation</td><td>10%</td><td>Attendance and engagement</td></tr>
+    <tr><td>Lab Outputs</td><td>30%</td><td>Session-by-session builds</td></tr>
+    <tr><td>Exams</td><td>20%</td><td>Prelim, Midterm, Semi-final</td></tr>
+    <tr><td>Final Project</td><td>40%</td><td>Working app + docs + demo</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top: 20px; color: var(--accent); font-size: 24px;">The final project is cumulative. You build it piece by piece every session.</p>
+</section>
+
+<!-- SLIDE 33: Session Recap -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Recap</span>
+  <h2 class="reveal d2">What We Covered Today</h2>
+  <ul class="reveal d3">
+    <li>Apps are everywhere and the industry is massive</li>
+    <li>Frontend (what users see) vs Backend (data + logic)</li>
+    <li>APIs connect frontend to backend</li>
+    <li>We'll use <strong class="highlight">FlutterFlow</strong> + <strong class="highlight-cyan">Supabase</strong></li>
+    <li>Low-code = fast development without sacrificing quality</li>
+    <li>Great apps solve specific problems for specific users</li>
+  </ul>
+</section>
+
+<!-- SLIDE 34: Next Session Preview -->
+<section class="slide" style="background: radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.15) 0%, transparent 60%), var(--gradient-1); align-items: center; text-align: center;">
+  <span class="eyebrow reveal d1">Coming Up</span>
+  <h2 class="reveal d2" style="font-size: 72px;">Coming Up Next</h2>
+  <h3 class="reveal d3" style="color: var(--accent); font-size: 40px; margin-top: 20px;">Requirements &amp; User Flow</h3>
+  <div class="purple-card reveal d4" style="max-width: 700px; margin: 30px auto 0;">
+    <p style="font-size: 24px; text-align: center; color: var(--foreground);">The next lesson turns an app idea into requirements, user stories, and a user flow diagram.</p>
+  </div>
+  <p class="reveal d5" style="margin-top: 30px; font-size: 22px; text-align:center;">Account setup will be introduced before the hands-on building sessions.</p>
+</section>
+
+<script src="assets/student-visuals/image-lightbox.js?v=2"></script>
+</body>
+</html>

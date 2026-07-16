@@ -1,0 +1,2410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chassis -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+/* =====================================================
+   PRESENTATION CHASSIS — style-invariant base styles
+   Fixed 1920×1080 canvas scaled to fit any viewport.
+   Customize colors, fonts, and chrome via :root tokens.
+   ===================================================== */
+
+/* ---------- Universal reset ---------- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Theme tokens (override in your deck's CSS) ---------- */
+:root {
+    color-scheme: light;
+
+    --background:      #ffffff;
+    --foreground:      #111111;
+    --card:            #f5f5f5;
+    --card-foreground: var(--foreground);
+    --accent:          #c94a3d;
+    --accent-foreground: #ffffff;
+
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --border:           color-mix(in srgb, var(--foreground) 12%, transparent);
+
+    --font-display: Georgia, serif;
+    --font-body: -apple-system, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Reveal animation */
+    --reveal-duration: 0.8s;
+    --reveal-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-distance: 28px;
+
+    /* Chrome (nav dots, keyboard hint) */
+    --nav-dot-size: 9px;
+    --nav-dot-radius: 50%;
+    --nav-dot-color: var(--foreground);
+    --nav-dot-active-color: var(--accent);
+    --nav-dot-opacity: 0.4;
+}
+
+/* ---------- Viewport lock + scroll snap ---------- */
+html, body { height: 100%; overflow-x: hidden; }
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* ---------- Type scale ----------
+   Fixed px sizes on a 1920×1080 canvas. The canvas is scaled to fit
+   any viewport via transform, so these sizes are absolute within the
+   design surface — no responsive units needed. */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 36px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 120px; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -0.01em; }
+h3 { font-size: 44px; line-height: 1.2; }
+.eyebrow {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+ul, ol { padding-left: 48px; display: flex; flex-direction: column; gap: 24px; }
+li::marker { color: var(--accent); }
+
+/* ---------- Slide structure ----------
+   .slide is the authored 1920×1080 artboard.
+   The chassis wraps it in viewport + scale layers at runtime. */
+.slide-viewport {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: block;
+    position: relative;
+    background: var(--background);
+    isolation: isolate;
+    z-index: 1;
+}
+
+.slide-scale {
+    width: 1920px;
+    height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+    transform-origin: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+}
+
+.slide {
+    width: 1920px;
+    height: 1080px;
+    padding: 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    background: transparent;
+}
+
+
+/* ---------- Image defaults ---------- */
+img, .image-container {
+    max-width: 100%;
+    max-height: 540px;
+    object-fit: contain;
+}
+
+/* ---------- Reveal primitives ----------
+   Driven by chassis.js via the Web Animations API, not CSS transitions.
+   Put .reveal* or .step on ANY element — author CSS on the same element
+   (opacity, transform, transition, filter) never conflicts, because
+   WAAPI animations live in the animation cascade origin and win over
+   normal author declarations. The .dN stagger classes below still apply
+   to theme-authored CSS animations via animation-delay.
+
+   Variants: .reveal (fade + up), .reveal-left, .reveal-right,
+   .reveal-scale, .reveal-blur. .step stays hidden until the user
+   advances forward. Don't combine .step with .reveal* on the same
+   element. */
+
+/* FOUC guard: hide reveals until chassis.js marks the document ready. */
+:root:not(.reveals-ready) .reveal,
+:root:not(.reveals-ready) .reveal-left,
+:root:not(.reveals-ready) .reveal-right,
+:root:not(.reveals-ready) .reveal-scale,
+:root:not(.reveals-ready) .reveal-blur,
+:root:not(.reveals-ready) .step {
+    opacity: 0;
+}
+:root:not(.reveals-ready) .reveal-blur { filter: blur(10px); }
+
+/* ---------- Stagger delays (.d1 … .d8) ---------- */
+.slide.visible .d1 { transition-delay: 0.10s; animation-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.25s; animation-delay: 0.25s; }
+.slide.visible .d3 { transition-delay: 0.40s; animation-delay: 0.40s; }
+.slide.visible .d4 { transition-delay: 0.55s; animation-delay: 0.55s; }
+.slide.visible .d5 { transition-delay: 0.70s; animation-delay: 0.70s; }
+.slide.visible .d6 { transition-delay: 0.85s; animation-delay: 0.85s; }
+.slide.visible .d7 { transition-delay: 1.00s; animation-delay: 1.00s; }
+.slide.visible .d8 { transition-delay: 1.15s; animation-delay: 1.15s; }
+
+/* ---------- Nav dots ----------
+   Default: right-center (vertical stack on right edge).
+   Override with <body data-nav="bottom | top-right | hidden">. */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1.5vw, 1.4rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vh, 0.8rem);
+    z-index: 50;
+}
+
+body[data-nav="bottom"] .nav-dots {
+    right: auto;
+    top: auto;
+    bottom: clamp(1rem, 2.5vh, 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+body[data-nav="top-right"] .nav-dots {
+    right: clamp(1rem, 2.5vw, 2rem);
+    top: clamp(1rem, 2.5vh, 2rem);
+    transform: none;
+    flex-direction: row;
+}
+
+body[data-nav="hidden"] .nav-dots { display: none; }
+
+body[data-nav="bottom"] .keyboard-hint {
+    left: clamp(1rem, 2vw, 1.5rem);
+    transform: none;
+}
+
+.nav-dots button {
+    width: var(--nav-dot-size);
+    height: var(--nav-dot-size);
+    border-radius: var(--nav-dot-radius);
+    border: 1.5px solid var(--nav-dot-color);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: var(--nav-dot-opacity);
+}
+.nav-dots button:hover { opacity: 0.85; transform: scale(1.15); }
+.nav-dots button:focus-visible {
+    outline: 2px solid var(--nav-dot-active-color);
+    outline-offset: 3px;
+    opacity: 1;
+}
+.nav-dots button.active {
+    background: var(--nav-dot-active-color);
+    border-color: var(--nav-dot-active-color);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ---------- Keyboard hint ---------- */
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.keyboard-hint kbd {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.9em;
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--background);
+    margin: 0 0.15em;
+}
+
+/* ---------- Credit line ---------- */
+.chassis-credit {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.02em;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.chassis-credit .chassis-credit-emoji {
+    font-style: normal;
+    margin: 0 0.15em;
+}
+
+body[data-nav="bottom"] .chassis-credit {
+    left: auto;
+    right: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ---------- Custom cursor ---------- */
+.chassis-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--accent);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+.chassis-cursor.visible { opacity: 1; }
+body.artifact-editor-editing .chassis-cursor { display: none; }
+
+@media (hover: none) {
+    .chassis-cursor { display: none; }
+}
+
+body.chassis-cursor-active:not(.artifact-editor-editing),
+body.chassis-cursor-active:not(.artifact-editor-editing) * { cursor: none; }
+
+/* ---------- Opt-outs ---------- */
+body[data-no-chrome] .nav-dots,
+body[data-no-chrome] .keyboard-hint,
+body[data-no-chrome] .chassis-credit,
+body[data-no-chrome] .chassis-cursor,
+body[data-no-chrome] .artifact-editor-toggle { display: none; }
+
+:fullscreen .keyboard-hint,
+:fullscreen .chassis-credit,
+:fullscreen .artifact-editor-toggle { display: none; }
+
+@media (hover: none) {
+    .keyboard-hint,
+    .chassis-credit { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 560px) {
+    .nav-dots,
+    .keyboard-hint,
+    .chassis-credit,
+    .chassis-cursor { display: none; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* ---------- Print (PDF export) ---------- */
+@media print {
+    .nav-dots, .keyboard-hint, .chassis-credit, .chassis-cursor { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    html { scroll-snap-type: none; }
+    .slide-viewport {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+    }
+    .slide-scale {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .slide {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+</style>
+<script>
+/* =====================================================
+   PRESENTATION CHASSIS — slide controller
+   Auto-initializes on DOMContentLoaded.
+   Exposes window.slides for programmatic control.
+   ===================================================== */
+(function () {
+    'use strict';
+
+    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+    const STEP_SELECTOR = '.step';
+    const ALL_REVEAL_SELECTOR = REVEAL_SELECTOR + ', ' + STEP_SELECTOR;
+    const VIEWPORT_CLASS = 'slide-viewport';
+    const SCALE_CLASS = 'slide-scale';
+
+    function _detectLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        return (param || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+
+    class SlidePresentation {
+        constructor() {
+            this.slides = Array.from(document.querySelectorAll('.slide'));
+            if (this.slides.length === 0) return;
+
+            // Ensure every slide has an id so hashes + anchor links work.
+            // Author-defined ids are preserved; the rest get slide-N (1-indexed).
+            this.slides.forEach((slide, idx) => {
+                if (!slide.id) slide.id = `slide-${idx + 1}`;
+            });
+            this.viewports = this._setupViewports();
+            this.scales = this.viewports.map((viewport) => viewport.querySelector(`.${SCALE_CLASS}`));
+
+            // Hide every reveal element BEFORE lifting the CSS FOUC guard.
+            // After this, .reveals-ready is on <html>, so CSS no longer hides
+            // reveals — inline styles keep them hidden until JS animates them.
+            this._setupReveals();
+
+            this.navDotsContainer = this._ensureNavDots();
+            this.keyboardHint = this._ensureKeyboardHint();
+            this.credit = this._ensureCredit();
+
+            this._setupCanvasScale();
+            this._setupIntersectionObserver();
+            this._setupKeyboardNav();
+            this._setupWheelNav();
+            this._setupTouchNav();
+            this._setupViewportSync();
+            this._buildNavDots();
+            this._setupHashNav();
+            this._setupCursor();
+            this._setupPrintSettling();
+
+            // If URL has a matching hash, start there; otherwise start at slide 0.
+            const initial = this._slideIndexFromHash(location.hash);
+            this.currentSlide = initial >= 0 ? initial : 0;
+            if (this.currentSlide !== 0) {
+                this._scrollToSlide(this.currentSlide, 'auto');
+            }
+            // Reveal initial slide immediately (observer may miss it on load).
+            const first = this.slides[this.currentSlide];
+            first.classList.add('visible');
+            this._playSlideReveals(first);
+            this._updateNavDots();
+        }
+
+        /* ---------- Viewport scaffolding ----------
+           Authors write .slide as the 1920×1080 artboard. The chassis wraps
+           that authored section in viewport and scale layers. */
+        _setupViewports() {
+            return this.slides.map((slide) => {
+                const existingScale = slide.parentElement?.classList.contains(SCALE_CLASS)
+                    ? slide.parentElement
+                    : null;
+                const existingViewport = existingScale?.parentElement?.classList.contains(VIEWPORT_CLASS)
+                    ? existingScale.parentElement
+                    : null;
+                if (existingViewport) {
+                    this._syncViewportBackground(slide, existingViewport);
+                    return existingViewport;
+                }
+
+                const viewport = document.createElement('div');
+                viewport.className = VIEWPORT_CLASS;
+                const scale = document.createElement('div');
+                scale.className = SCALE_CLASS;
+
+                slide.parentNode.insertBefore(viewport, slide);
+                viewport.appendChild(scale);
+                scale.appendChild(slide);
+                this._syncViewportBackground(slide, viewport);
+
+                return viewport;
+            });
+        }
+
+        _syncViewportBackground(slide, viewport) {
+            const style = getComputedStyle(slide);
+            const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
+            const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
+            if (hasBackgroundImage || hasBackgroundColor) {
+                viewport.style.background = style.background;
+            } else {
+                viewport.style.background = '';
+            }
+            slide.style.background = 'transparent';
+        }
+
+        /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
+        _ensureNavDots() {
+            let el = document.getElementById('navDots');
+            if (!el) {
+                el = document.createElement('nav');
+                el.id = 'navDots';
+                el.className = 'nav-dots';
+                el.setAttribute('aria-label', 'Slide navigation');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureKeyboardHint() {
+            let el = document.querySelector('.keyboard-hint');
+            if (!el) {
+                const i18n = {
+                    en: { navigate: 'navigate', restart: 'restart', fullscreen: 'fullscreen' },
+                    es: { navigate: 'navegar',   restart: 'inicio',   fullscreen: 'fullscreen' },
+                    fr: { navigate: 'naviguer',  restart: 'début',    fullscreen: 'fullscreen' },
+                    de: { navigate: 'blättern',  restart: 'anfang',   fullscreen: 'vollbild' },
+                    pt: { navigate: 'navegar',   restart: 'início',   fullscreen: 'fullscreen' },
+                    ja: { navigate: '移動',      restart: '先頭',      fullscreen: '全画面' },
+                    ko: { navigate: '이동',      restart: '처음',      fullscreen: '전체화면' },
+                    zh: { navigate: '翻页',      restart: '重置',      fullscreen: '全屏' },
+                    it: { navigate: 'navigare',  restart: 'inizio',   fullscreen: 'fullscreen' },
+                    nl: { navigate: 'bladeren',  restart: 'begin',    fullscreen: 'vollscherm' },
+                };
+                const t = i18n[_detectLang()] || i18n.en;
+                el = document.createElement('div');
+                el.className = 'keyboard-hint';
+                el.innerHTML = `<kbd>←</kbd> <kbd>→</kbd> ${t.navigate} &middot; <kbd>R</kbd> ${t.restart} &middot; <kbd>F</kbd> ${t.fullscreen}`;
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureCredit() {
+            let el = document.querySelector('.chassis-credit');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'chassis-credit';
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML = 'Dave Bryan J. Beatingo';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        /* ---------- Reveal engine ----------
+           Reveals are driven by the Web Animations API instead of CSS
+           transitions. This lets authors put .reveal* / .step on any
+           element: animation values live in the animation cascade origin
+           and win over normal author declarations, so no wrapper element
+           is required to isolate the chassis from author CSS.
+
+           State per slide:
+           - "hidden":  inline opacity/transform/filter from the 'from'
+                        keyframe of the variant. Set on init and on
+                        forward re-entry.
+           - "played":  animation is running or has run; the class
+                        `reveals-played` on the slide makes playback
+                        idempotent so observer re-fires (resize,
+                        fullscreen) don't restart the animation.
+           - "settled": animation canceled, inline styles cleared. Used
+                        for backward entries (we skip the animation and
+                        show the final state instantly) and for print. */
+
+        _setupReveals() {
+            // Lift the CSS FOUC guard first so getComputedStyle reads each
+            // element's natural opacity, not the guard's blanket opacity: 0.
+            // No paint occurs mid-task — inline hidden styles are applied
+            // before the browser yields, so there is no visible flash.
+            document.documentElement.classList.add('reveals-ready');
+            this.slides.forEach((slide) => {
+                slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                    el._targetOpacity = parseFloat(getComputedStyle(el).opacity);
+                    this._applyHiddenStyle(el);
+                });
+            });
+        }
+
+        _setupPrintSettling() {
+            // Browsers snapshot the document for print/PDF export. WAAPI
+            // animations don't necessarily complete in that snapshot, so
+            // settle every slide to its final state first. After printing,
+            // reset — but only for slides that haven't already been viewed,
+            // so the audience experience picks up where it left off.
+            window.addEventListener('beforeprint', () => {
+                this.slides.forEach((slide) => this._settleSlide(slide));
+            });
+        }
+
+        _readTokens() {
+            const cs = getComputedStyle(document.documentElement);
+            const rawDuration = parseFloat(cs.getPropertyValue('--reveal-duration'));
+            const duration = Number.isFinite(rawDuration) ? rawDuration * 1000 : 800;
+            const ease = cs.getPropertyValue('--reveal-ease').trim() || 'cubic-bezier(0.16, 1, 0.3, 1)';
+            const distance = cs.getPropertyValue('--reveal-distance').trim() || '28px';
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            return {
+                duration: reducedMotion ? 1 : duration,
+                ease,
+                distance,
+            };
+        }
+
+        _getRevealDelay(el) {
+            // Use getAttribute('class') rather than el.className: on SVG
+            // elements, `.className` is an SVGAnimatedString (not a string)
+            // and calling .match on it throws. getAttribute is uniform
+            // across HTML and SVG.
+            const classes = el.getAttribute('class') || '';
+            const m = classes.match(/\bd([1-8])\b/);
+            if (!m) return 0;
+            // Matches CSS .dN: d1 = 100ms, d2 = 250ms, +150ms per step.
+            return 100 + (parseInt(m[1], 10) - 1) * 150;
+        }
+
+        _getRevealKeyframes(el, distance) {
+            const to = el._targetOpacity ?? 1;
+            if (el.classList.contains('reveal-left')) {
+                return [
+                    { opacity: 0, transform: `translateX(calc(-1 * ${distance}))` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-right')) {
+                return [
+                    { opacity: 0, transform: `translateX(${distance})` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-scale')) {
+                return [
+                    { opacity: 0, transform: 'scale(0.88)' },
+                    { opacity: to, transform: 'scale(1)' },
+                ];
+            }
+            if (el.classList.contains('reveal-blur')) {
+                return [
+                    { opacity: 0, filter: 'blur(10px)' },
+                    { opacity: to, filter: 'blur(0)' },
+                ];
+            }
+            // Default: .reveal or .step (slide up + fade)
+            return [
+                { opacity: 0, transform: `translateY(${distance})` },
+                { opacity: to, transform: 'translateY(0)' },
+            ];
+        }
+
+        _applyHiddenStyle(el) {
+            const { distance } = this._readTokens();
+            const from = this._getRevealKeyframes(el, distance)[0];
+            if ('opacity' in from) el.style.opacity = from.opacity;
+            if ('transform' in from) el.style.transform = from.transform;
+            if ('filter' in from) el.style.filter = from.filter;
+        }
+
+        _clearHiddenStyle(el) {
+            el.style.opacity = '';
+            el.style.transform = '';
+            el.style.filter = '';
+        }
+
+        _cancelReveal(el) {
+            if (el._revealAnim) {
+                el._revealAnim.cancel();
+                el._revealAnim = null;
+            }
+        }
+
+        _playReveal(el, delayOverride) {
+            this._cancelReveal(el);
+            const { duration, ease, distance } = this._readTokens();
+            const delay = typeof delayOverride === 'number' ? delayOverride : this._getRevealDelay(el);
+            const keyframes = this._getRevealKeyframes(el, distance);
+            // fill: 'backwards' applies the 'from' keyframe during the
+            // stagger delay so the element stays hidden until its turn,
+            // without pinning the 'to' keyframe after the animation ends.
+            // This lets co-existing author CSS (e.g. a `.pulse` CSS
+            // animation on the same element) take over naturally once the
+            // entrance completes — otherwise our fill would mask anything
+            // the author wanted to happen post-reveal.
+            const anim = el.animate(keyframes, {
+                duration,
+                delay,
+                easing: ease,
+                fill: 'backwards',
+            });
+            el._revealAnim = anim;
+            // Safe to clear inline 'from' styles now — the animation's
+            // backwards-fill holds the element at the 'from' keyframe for
+            // the duration of any stagger delay.
+            this._clearHiddenStyle(el);
+        }
+
+        _playSlideReveals(slide) {
+            if (slide.classList.contains('reveals-played')) return;
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => this._playReveal(el));
+            // .step elements stay hidden until the user advances.
+        }
+
+        _resetSlideReveals(slide) {
+            // Forward re-entry: cancel in-flight animations, re-hide
+            // everything, and reset step state so the slide replays cleanly
+            // when the observer next adds .visible.
+            slide.classList.remove('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step.step-shown').forEach((el) => el.classList.remove('step-shown'));
+        }
+
+        _settleSlide(slide) {
+            // Print / PDF export: jump to the final state with everything
+            // shown, so every step appears in the exported document.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => el.classList.add('step-shown'));
+        }
+
+        _rewindSlide(slide) {
+            // Backward re-entry: show reveals instantly (no replay — the
+            // viewer already saw the intro) but hide every step, so the
+            // slide is positioned at the start of its stepped content and
+            // can be stepped through again.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => {
+                el.classList.remove('step-shown');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+        }
+
+        /* ---------- Navigation ----------
+           goTo scrolls to the target. Both forward-replay and backward-
+           rewind need to mutate the target BEFORE scrolling — while it's
+           still offscreen — so the viewer never sees the old state flash
+           into view. Resetting after the slide is in view causes a visible
+           "show then hide" blink; the IntersectionObserver fires too late
+           (80% threshold) to catch it. */
+        goTo(index) {
+            const clamped = Math.max(0, Math.min(this.slides.length - 1, index));
+            if (clamped === this.currentSlide) return;
+
+            const target = this.slides[clamped];
+            const goingForward = clamped > this.currentSlide;
+
+            if (target.classList.contains('visible')) {
+                if (goingForward) {
+                    // Forward replay: full reset so the observer can play reveals fresh.
+                    target.classList.remove('visible');
+                    this._resetSlideReveals(target);
+                } else {
+                    // Backward rewind: hide any shown steps so the slide
+                    // scrolls back in at the start of its stepped content.
+                    this._rewindSlide(target);
+                }
+            }
+
+            this._scrollToSlide(clamped, 'smooth');
+        }
+
+        _scrollToSlide(index, behavior) {
+            this.viewports[index]?.scrollIntoView({ behavior, block: 'start' });
+        }
+
+        _slideIndexFromHash(hash) {
+            if (!hash) return -1;
+            return this.slides.findIndex((s) => '#' + s.id === hash);
+        }
+
+        _syncHash() {
+            const slide = this.slides[this.currentSlide];
+            if (!slide || !slide.id) return;
+            const newHash = '#' + slide.id;
+            if (location.hash !== newHash) {
+                // replaceState — keeps the URL in sync without polluting history,
+                // so the browser back button exits the deck instead of stepping through slides.
+                try {
+                    history.replaceState(null, '', newHash);
+                } catch {
+                    // Sandboxed iframes (opaque origin, about:srcdoc) reject URL
+                    // mutation with a SecurityError. Hash sync is a nicety — an
+                    // unguarded throw here kills the observer callback before it
+                    // marks the slide visible and plays its reveals.
+                }
+            }
+        }
+
+        _setupHashNav() {
+            // React to external hash changes (anchor link clicks, back/forward if user uses pushState manually)
+            window.addEventListener('hashchange', () => {
+                const idx = this._slideIndexFromHash(location.hash);
+                if (idx >= 0 && idx !== this.currentSlide) this.goTo(idx);
+            });
+        }
+
+        /* ---------- Custom cursor ----------
+           Accent disc that follows the pointer, hidden after idle. */
+        _setupCursor() {
+            if (!matchMedia('(hover: hover)').matches) return;
+
+            const cursor = document.createElement('div');
+            cursor.className = 'chassis-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+            document.body.classList.add('chassis-cursor-active');
+
+            const half = 16;  // matches width/height / 2 in CSS
+            const IDLE_MS = 2500;
+            let idleTimer = null;
+
+            const show = () => {
+                cursor.classList.add('visible');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    cursor.classList.remove('visible');
+                }, IDLE_MS);
+            };
+            const hide = () => {
+                clearTimeout(idleTimer);
+                cursor.classList.remove('visible');
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate3d(${e.clientX - half}px, ${e.clientY - half}px, 0)`;
+                show();
+            });
+            document.addEventListener('mouseleave', hide);
+            document.addEventListener('mouseenter', show);
+        }
+
+        /* ---------- Fullscreen ---------- */
+        toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.();
+            }
+        }
+
+        next() { this.goTo(this.currentSlide + 1); }
+        prev() { this.goTo(this.currentSlide - 1); }
+        first() { this.goTo(0); }
+        last() { this.goTo(this.slides.length - 1); }
+
+        /* ---------- Step-aware advance / retreat ----------
+           advance() reveals the next .step on the current slide (if any),
+           otherwise advances to the next slide. retreat() hides the last
+           revealed step, otherwise goes back to the previous slide. */
+        advance() {
+            const current = this.slides[this.currentSlide];
+            const nextStep = current?.querySelector('.step:not(.step-shown)');
+            if (nextStep) {
+                nextStep.classList.add('step-shown');
+                // No stagger on click-reveal — the user's gesture is the trigger.
+                this._playReveal(nextStep, 0);
+                return;
+            }
+            this.next();
+        }
+        retreat() {
+            const current = this.slides[this.currentSlide];
+            const shown = current?.querySelectorAll('.step.step-shown');
+            if (shown && shown.length > 0) {
+                const last = shown[shown.length - 1];
+                last.classList.remove('step-shown');
+                this._cancelReveal(last);
+                this._applyHiddenStyle(last);
+                return;
+            }
+            this.prev();
+        }
+
+        /* ---------- Intersection observer ----------
+           Fire late (>= 80% in view) so reveals play on a settled slide.
+           This is the single source of truth for active-slide state.
+
+           Forward:  add .visible, play reveals. (goTo() has already reset
+                     the target to pre-reveal state if this is a re-visit,
+                     so the animation is fresh either way.)
+           Backward: add .visible, rewind to the start of the stepped
+                     content — reveals are shown instantly (no replay) and
+                     every step is hidden again so the viewer can step
+                     through it fresh. */
+        _setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const idx = this.viewports.indexOf(entry.target);
+                    if (idx < 0) return;
+                    const slide = this.slides[idx];
+
+                    if (idx === this.currentSlide) {
+                        // Same-slide re-fire (initial load, resize, fullscreen).
+                        if (!slide.classList.contains('visible')) {
+                            slide.classList.add('visible');
+                        }
+                        // Idempotent: only plays if not already marked played.
+                        this._playSlideReveals(slide);
+                        return;
+                    }
+
+                    const goingForward = idx > this.currentSlide;
+                    this.currentSlide = idx;
+                    this._updateNavDots();
+                    this._syncHash();
+
+                    slide.classList.add('visible');
+                    if (goingForward) {
+                        this._playSlideReveals(slide);
+                    } else {
+                        this._rewindSlide(slide);
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            this.viewports.forEach((viewport) => observer.observe(viewport));
+        }
+
+        /* ---------- Keyboard ---------- */
+        _setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                // Skip when user is editing text
+                if (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+                switch (e.key) {
+                    // Step-aware: consume steps first, then advance slides
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault(); this.advance(); break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault(); this.retreat(); break;
+                    // Slide-level: always skip past steps
+                    case 'PageDown':
+                        e.preventDefault(); this.next(); break;
+                    case 'PageUp':
+                        e.preventDefault(); this.prev(); break;
+                    case 'Home':
+                        e.preventDefault(); this.first(); break;
+                    case 'End':
+                        e.preventDefault(); this.last(); break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault(); this.toggleFullscreen(); break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault(); this.first(); break;
+                }
+            });
+        }
+
+        /* ---------- Wheel / trackpad ----------
+           ALWAYS preventDefault — letting any native wheel scroll through
+           races against scrollIntoView + mandatory snap, and blocks macOS
+           two-finger horizontal swipes from triggering browser back/forward.
+           Whichever axis has the larger magnitude wins, so vertical scroll
+           and horizontal trackpad swipes both drive advance/retreat. Lock
+           briefly after a gesture so trackpad inertia (continuous small
+           deltas) can't spam next(). */
+        _setupWheelNav() {
+            let locked = false;
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) return;                // preserve browser pinch-zoom (ctrl+wheel)
+                e.preventDefault();                   // block native scroll + horizontal back-swipe
+                if (locked) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (Math.abs(delta) < 20) return;     // ignore tiny flicks
+                locked = true;
+                if (delta > 0) this.advance(); else this.retreat();
+                setTimeout(() => { locked = false; }, 500);
+            }, { passive: false });
+        }
+
+        /* ---------- Touch / swipe ----------
+           Horizontal swipes advance / retreat slides; left = next, right =
+           prev (matches stories / carousel conventions). Dominantly
+           vertical swipes fall through to native scroll-snap so the
+           existing top/bottom behavior keeps working. A time budget
+           rejects slow pans that were really aborted scrolls. */
+        _setupTouchNav() {
+            const MIN_DISTANCE = 50;     // px — below this is a tap or jitter
+            const MAX_TIME = 600;        // ms — slower than this is a pan, not a swipe
+            const DOMINANCE = 1.2;       // horizontal must beat vertical by this factor
+
+            let startX = 0, startY = 0, startTime = 0;
+            let tracking = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('artifact-editor-editing')) { tracking = false; return; }
+                if (e.touches.length !== 1) { tracking = false; return; }
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                startTime = performance.now();
+                tracking = true;
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const ax = Math.abs(dx), ay = Math.abs(dy);
+                if (ax < MIN_DISTANCE) return;
+                if (ax < ay * DOMINANCE) return;
+                if (performance.now() - startTime > MAX_TIME) return;
+                if (dx < 0) this.advance(); else this.retreat();
+            }, { passive: true });
+
+            window.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+        }
+
+        /* ---------- Canvas scaling ----------
+           Each scaler holds a fixed 1920×1080 slide. Compute the
+           scale factor that fits it inside the viewport and apply via
+           CSS custom property. Runs on init, resize, and fullscreen. */
+        _setupCanvasScale() {
+            const CANVAS_W = 1920;
+            const CANVAS_H = 1080;
+            const scales = this.scales;
+
+            const update = () => {
+                const scale = Math.min(
+                    window.innerWidth / CANVAS_W,
+                    window.innerHeight / CANVAS_H
+                );
+                scales.forEach((el) => {
+                    el?.style.setProperty('--slide-scale', scale);
+                });
+            };
+
+            update();
+            window.addEventListener('resize', update);
+            document.addEventListener('fullscreenchange', () => {
+                requestAnimationFrame(update);
+            });
+        }
+
+        /* ---------- Viewport sync ----------
+           Resize / fullscreenchange → realign current slide. Each slide is
+           100vh, so a viewport height change leaves the existing scroll
+           position out of alignment with the slide top; scroll-snap doesn't
+           re-snap on its own. */
+        _setupViewportSync() {
+            const realign = () => {
+                requestAnimationFrame(() => {
+                    this._scrollToSlide(this.currentSlide, 'auto');
+                });
+            };
+            window.addEventListener('resize', realign);
+            document.addEventListener('fullscreenchange', realign);
+        }
+
+        /* ---------- Nav dots ---------- */
+        _buildNavDots() {
+            // Clear first — prevents duplicates when DOM is re-serialized/re-opened
+            this.navDotsContainer.innerHTML = '';
+            this.slides.forEach((slide, idx) => {
+                const dot = document.createElement('button');
+                dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+                if (idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.goTo(idx));
+                this.navDotsContainer.appendChild(dot);
+            });
+        }
+
+        _updateNavDots() {
+            const dots = this.navDotsContainer.querySelectorAll('button');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === this.currentSlide);
+            });
+        }
+    }
+
+    /* ---------- Auto-init ---------- */
+    function init() {
+        // Each slide canvas is its own editable host for the inline editor.
+        document.querySelectorAll('.slide').forEach(function (el) {
+            el.classList.add('artifact-editable');
+        });
+        window.slides = new SlidePresentation();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chassis -->
+    <title>Session 2: Requirements & User Flow | Student Edition</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+
+    <style>
+      :root {
+        --background: #0d0a1a;
+        --foreground: #f0eef6;
+        --accent: #a855f7;
+        --accent-secondary: #06b6d4;
+        --accent-foreground: #ffffff;
+        --card: #1e1536;
+        --card-foreground: #f0eef6;
+        --muted-foreground: rgba(240,238,246,0.6);
+        --border: rgba(168,85,247,0.2);
+        --font-display: 'Archivo Black', sans-serif;
+        --font-body: 'Space Grotesk', sans-serif;
+        --gradient-1: linear-gradient(135deg, #0d0a1a 0%, #1a0e2e 50%, #0d0a1a 100%);
+        --gradient-2: linear-gradient(135deg, #1a0e2e 0%, #2d1b4e 50%, #1a0e2e 100%);
+        --gradient-card: linear-gradient(135deg, #2d1b69 0%, #1e1145 100%);
+        --nav-dot-color: rgba(168,85,247,0.4);
+        --nav-dot-active-color: #a855f7;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: var(--background); color: var(--foreground); }
+      h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; line-height: 1.1; }
+      p, li, span, td, th { font-family: var(--font-body); }
+
+      .slide {
+        background: var(--gradient-1);
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .section-number {
+        font-family: var(--font-display);
+        font-size: 180px;
+        color: rgba(168,85,247,0.08);
+        position: absolute;
+        top: 40px;
+        right: 80px;
+        line-height: 1;
+      }
+
+      .eyebrow {
+        font-family: var(--font-body);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 20px;
+      }
+
+      h1 { font-size: 120px; }
+      h2 { font-size: 64px; margin-bottom: 30px; }
+      h3 { font-size: 44px; margin-bottom: 20px; }
+      p { font-size: 28px; line-height: 1.5; color: var(--muted-foreground); max-width: 900px; }
+      li { font-size: 28px; line-height: 1.6; color: var(--muted-foreground); margin-bottom: 12px; margin-left: 30px; }
+
+      .purple-card {
+        background: var(--gradient-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 40px;
+        margin-top: 30px;
+      }
+
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 30px; }
+
+      .grid-card {
+        background: var(--gradient-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 30px;
+      }
+      .grid-card h3 { font-size: 28px; margin-bottom: 12px; }
+      .grid-card p { font-size: 22px; }
+
+      .highlight { color: var(--accent); }
+      .highlight-cyan { color: var(--accent-secondary); }
+
+      .big-stat { font-family: var(--font-display); font-size: 140px; color: var(--accent); line-height: 1; }
+
+      .qa-banner {
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        border-radius: 20px;
+        padding: 60px;
+        text-align: center;
+        margin-top: 30px;
+      }
+      .qa-banner h2 { color: #fff; margin-bottom: 16px; }
+      .qa-banner p { color: rgba(255,255,255,0.85); margin: 0 auto; }
+
+      table { width: 100%; border-collapse: collapse; margin-top: 30px; font-family: var(--font-body); }
+      th { background: rgba(168,85,247,0.15); padding: 16px 20px; text-align: left; font-size: 22px; font-weight: 600; color: var(--accent); border-bottom: 2px solid var(--border); }
+      td { padding: 14px 20px; font-size: 22px; color: var(--muted-foreground); border-bottom: 1px solid rgba(168,85,247,0.1); }
+
+      .code-block {
+        background: #0f0b1e;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 30px;
+        font-family: 'Courier New', monospace;
+        font-size: 24px;
+        color: var(--foreground);
+        margin-top: 20px;
+        line-height: 1.8;
+      }
+
+      .flow-diagram {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 30px;
+      }
+      .flow-box {
+        background: var(--gradient-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 24px;
+        font-size: 20px;
+        color: var(--foreground);
+        font-family: var(--font-body);
+        font-weight: 500;
+      }
+      .flow-arrow { color: var(--accent); font-size: 28px; font-weight: 700; }
+      .flow-chart {
+        margin-top: 26px;
+      }
+      .flow-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+      }
+      .flow-row + .flow-row { margin-top: 18px; }
+      .flow-terminal,
+      .flow-process {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 70px;
+        padding: 15px 22px;
+        color: var(--foreground);
+        font-family: var(--font-body);
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+      }
+      .flow-terminal {
+        min-width: 100px;
+        background: rgba(34,197,94,0.14);
+        border: 2px solid rgba(34,197,94,0.58);
+        border-radius: 999px;
+      }
+      .flow-process {
+        min-width: 130px;
+        background: var(--gradient-card);
+        border: 2px solid rgba(96,165,250,0.52);
+        border-radius: 4px;
+      }
+      .flow-diamond {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 130px;
+        height: 130px;
+        flex: 0 0 130px;
+        background: rgba(6,182,212,0.15);
+        border: 2px solid rgba(6,182,212,0.58);
+        border-radius: 0;
+        padding: 0;
+        transform: rotate(45deg);
+      }
+      .flow-diamond > span {
+        display: block;
+        width: 92px;
+        color: var(--accent-secondary);
+        font-family: var(--font-body);
+        font-size: 17px;
+        line-height: 1.16;
+        font-weight: 700;
+        text-align: center;
+        transform: rotate(-45deg);
+      }
+      .flow-branch {
+        min-width: 68px;
+        color: var(--accent);
+        font-size: 20px;
+        font-weight: 700;
+        text-align: center;
+      }
+      .flow-return {
+        color: var(--muted-foreground);
+        font-size: 19px;
+        font-weight: 600;
+        text-align: center;
+      }
+      .flow-chart .flow-arrow {
+        flex: 0 0 auto;
+        font-size: 23px;
+      }
+      .flow-chart .flow-process[style*="239,68,68"] {
+        border-color: rgba(239,68,68,0.65) !important;
+      }
+      .flow-chart .flow-process[style*="34,197,94"] {
+        border-color: rgba(34,197,94,0.65) !important;
+      }
+      .flow-grid {
+        display: grid;
+        align-items: center;
+        justify-content: center;
+        column-gap: 16px;
+        row-gap: 14px;
+        margin: 46px auto 0;
+      }
+      .login-flow-grid {
+        grid-template-columns: 108px 36px 145px 36px 130px 72px 145px 36px 145px 36px 108px;
+        grid-template-rows: 130px 44px 130px 44px 70px;
+      }
+      .post-flow-grid {
+        grid-template-columns: 108px 36px 148px 36px 170px 36px 148px 36px 148px;
+        grid-template-rows: 70px 44px 130px 70px 70px;
+      }
+      .flow-grid .flow-terminal,
+      .flow-grid .flow-process {
+        width: 100%;
+        min-width: 0;
+      }
+      .flow-grid .flow-arrow,
+      .flow-grid .flow-branch,
+      .flow-grid .flow-return {
+        justify-self: center;
+      }
+      .flow-grid .flow-branch {
+        white-space: nowrap;
+      }
+      .flowchart-illustration {
+        width: min(100%, 1600px);
+        margin: 42px auto 0;
+      }
+      .flowchart-svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+      .flowchart-svg .connector {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 3;
+      }
+      .login-flow-svg .connector { marker-end: url(#login-flow-arrow); }
+      .post-flow-svg .connector { marker-end: url(#post-flow-arrow); }
+      .flowchart-svg .connector-green { stroke: #22c55e; }
+      .flowchart-svg .connector-danger { stroke: #ef4444; }
+      .flowchart-svg .terminal-node {
+        fill: rgba(34,197,94,0.14);
+        stroke: #22c55e;
+        stroke-width: 2.5;
+      }
+      .flowchart-svg .process-node {
+        fill: rgba(37,99,235,0.16);
+        stroke: #5b7cfa;
+        stroke-width: 2.5;
+      }
+      .flowchart-svg .success-node {
+        fill: rgba(34,197,94,0.12);
+        stroke: #22c55e;
+      }
+      .flowchart-svg .danger-node {
+        fill: rgba(239,68,68,0.12);
+        stroke: #ef4444;
+      }
+      .flowchart-svg .decision-node {
+        fill: rgba(6,182,212,0.15);
+        stroke: #06b6d4;
+        stroke-width: 2.5;
+      }
+      .flowchart-svg .node-label {
+        fill: var(--foreground);
+        font-family: var(--font-body);
+        font-size: 21px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .flowchart-svg .decision-label {
+        fill: var(--accent-secondary);
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .flowchart-svg .path-label {
+        fill: var(--accent);
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .flowchart-svg .return-label {
+        fill: var(--muted-foreground);
+        font-family: var(--font-body);
+        font-size: 17px;
+        font-weight: 600;
+        text-anchor: middle;
+      }
+
+
+      .tool-badge {
+        display: inline-block;
+        background: rgba(168,85,247,0.15);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 10px 24px;
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--accent);
+        margin: 6px 8px 6px 0;
+      }
+
+    </style>
+<style data-student-watermark>
+.slide::before {
+  content: "Application Development & Emerging Technologies";
+  position: absolute;
+  top: clamp(0.6rem, 1.2vh, 1rem);
+  right: clamp(1rem, 2vw, 1.5rem);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--muted-foreground);
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 50;
+}
+</style>
+  <style>
+    /* Shared visual system for process diagrams and real interface references. */
+    .interface-reference {
+      width: 100%;
+      height: 470px;
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr) 48px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      background: #10131b;
+      box-shadow: 0 22px 55px rgba(0,0,0,.3);
+    }
+    .interface-reference--compact { height: 430px; }
+    .interface-reference__bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: #181c27;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      color: rgba(255,255,255,.72);
+      font-size: 15px;
+    }
+    .interface-reference__dots { display: flex; gap: 7px; }
+    .interface-reference__dots i { width: 10px; height: 10px; display: block; border-radius: 50%; background: #fb7185; }
+    .interface-reference__dots i:nth-child(2) { background: #facc15; }
+    .interface-reference__dots i:nth-child(3) { background: #4ade80; }
+    .interface-reference__body { min-height: 0; display: flex; align-items: center; justify-content: center; padding: 10px; background: #0b0e14; }
+    .interface-reference__body img { width: 100%; height: 100%; display: block; object-fit: contain; object-position: center; }
+    .interface-reference__caption { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 16px; color: rgba(255,255,255,.8); font-size: 15px; line-height: 1.25; background: #181c27; border-top: 1px solid rgba(255,255,255,.1); }
+    .interface-reference__caption span:last-child { flex: 0 0 auto; color: var(--accent-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+    .process-path { width: 100%; display: grid; grid-template-columns: minmax(0,1fr) 58px minmax(0,1fr) 58px minmax(0,1fr) 58px minmax(0,1fr) 58px minmax(0,1fr); align-items: stretch; margin-top: 38px; }
+    .process-card { min-width: 0; min-height: 175px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 18px 14px; border: 1px solid rgba(255,255,255,.15); border-radius: 17px; background: linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.025)); box-shadow: 0 16px 36px rgba(0,0,0,.22); text-align: center; }
+    .process-card strong { color: var(--foreground); font-size: 24px; }
+    .process-card small { color: var(--muted-foreground); font-size: 16px; line-height: 1.35; }
+    .process-card__icon { font-size: 38px; line-height: 1; }
+    .process-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--accent-secondary); font-size: 38px; font-weight: 700; }
+    .process-arrow small { color: var(--muted-foreground); font-size: 11px; text-transform: uppercase; letter-spacing: .07em; }
+    .tool-role { min-height: 255px; display: flex; flex-direction: column; justify-content: center; }
+    .tool-role__icon { display: block; margin-bottom: 14px; font-size: 42px; }
+    .navigation-layout { display: grid; grid-template-columns: .86fr 1.14fr; gap: 30px; align-items: stretch; margin-top: 22px; }
+    .navigation-patterns { display: grid; gap: 13px; }
+    .nav-pattern { min-height: 126px; display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: center; padding: 18px 20px; border: 1px solid rgba(255,255,255,.13); border-radius: 16px; background: rgba(255,255,255,.045); text-align: left; }
+    .nav-pattern__icon { font-size: 36px; text-align: center; }
+    .nav-pattern strong { color: var(--foreground); font-size: 22px; }
+    .nav-pattern p { margin-top: 5px; font-size: 17px; line-height: 1.35; }
+    .screen-list-slide ul { gap: 7px !important; }
+    .screen-list-slide li { font-size: 20px !important; }
+  </style>
+<style data-image-lightbox-styles>
+  .slide img[data-lightbox-ready] { cursor: zoom-in; transition: filter .18s ease, transform .18s ease; }
+  .slide img[data-lightbox-ready]:hover { filter: brightness(1.06); }
+  .slide img[data-lightbox-ready]:focus-visible { outline: 4px solid var(--accent-secondary); outline-offset: 5px; }
+  body.image-lightbox-open { overflow: hidden !important; }
+  .image-lightbox { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; padding: 58px 46px 38px; background: rgba(3,5,12,.94); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility .2s ease; }
+  .image-lightbox.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
+  .image-lightbox__figure { width: min(94vw, 1800px); height: min(88vh, 980px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; margin: 0; }
+  .image-lightbox__image { max-width: 94vw !important; max-height: 80vh !important; width: auto !important; height: auto !important; object-fit: contain !important; border: 1px solid rgba(255,255,255,.2); border-radius: 14px; background: #0b0e14; box-shadow: 0 28px 90px rgba(0,0,0,.65); cursor: zoom-out; }
+  .image-lightbox__caption { max-width: 1100px; color: rgba(255,255,255,.85); font: 500 17px/1.4 var(--font-body, sans-serif); text-align: center; }
+  .image-lightbox__close { position: fixed; top: 18px; right: 24px; width: 52px; height: 52px; display: grid; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(18,22,32,.9); color: #fff; font: 300 36px/1 sans-serif; cursor: pointer; }
+  .image-lightbox__close:hover, .image-lightbox__close:focus-visible { background: var(--accent); outline: none; }
+  @media (max-width: 760px) { .image-lightbox { padding: 72px 18px 28px; } .image-lightbox__image { max-width: 96vw !important; max-height: 76vh !important; } }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<section class="slide" style="background: radial-gradient(ellipse at 30% 50%, rgba(168,85,247,0.15) 0%, transparent 60%), var(--gradient-1); justify-content: center; align-items: center; text-align: center;">
+  <h1 class="reveal d2" style="font-size: 110px;">Requirements &amp;<br><span class="highlight">User Flow</span></h1>
+  <p class="reveal d3" style="font-size: 32px; margin-top: 30px;">From idea to structured plan</p>
+  <p class="reveal d4" style="font-size: 22px; color: var(--accent); margin-top: 20px;">Student Edition - expanded lesson explanations</p>
+</section>
+
+<!-- SLIDE 2: Recap -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Last Session</span>
+  <h2 class="reveal d2">Quick <span class="highlight">Recap</span></h2>
+  <div class="grid-3 reveal d3" style="margin-top:34px;">
+    <div class="grid-card">
+      <h3>App Mindset</h3>
+      <p>Good apps solve a clear problem for a real user.</p>
+    </div>
+    <div class="grid-card">
+      <h3>How Apps Work</h3>
+      <p>Frontend, API, backend, and database work together to complete a user task.</p>
+    </div>
+    <div class="grid-card">
+      <h3>Our Stack</h3>
+      <p>FlutterFlow builds the interface, while Supabase supports data and login.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="font-size:24px;color:var(--accent);margin-top:32px;">Today, we turn an app idea into a clear plan before building.</p>
+</section>
+
+<!-- SLIDE 3: App Types -->
+<section class="slide" style="background: radial-gradient(ellipse at 72% 28%, rgba(6,182,212,0.1) 0%, transparent 52%), var(--gradient-1);">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">Apps Come in <span class="highlight">Different Forms</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 class="highlight-cyan">Where apps live</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;"><strong>Mobile</strong> for phones and tablets</li>
+        <li style="font-size: 22px;"><strong>Web</strong> inside a browser</li>
+        <li style="font-size: 22px;"><strong>Desktop</strong> on a computer</li>
+      </ul>
+    </div>
+    <div class="grid-card" style="border-color: rgba(168,85,247,0.4);">
+      <h3 class="highlight">Why cross-platform?</h3>
+      <p>One project can serve more than one device. FlutterFlow helps us build for mobile and web without starting from zero for each platform.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 18px; color: var(--accent);">Your requirements must match the device and people who will use the app.</p>
+</section>
+
+<!-- SLIDE 4: App Architecture -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">One User Action, <span class="highlight">Many App Parts</span></h2>
+  <div class="process-path reveal d3">
+    <div class="process-card"><span class="process-card__icon">👤</span><strong>User</strong><small>Starts a task</small></div>
+    <div class="process-arrow"><span>→</span><small>Tap</small></div>
+    <div class="process-card"><span class="process-card__icon">📱</span><strong>Frontend</strong><small>Screens and buttons</small></div>
+    <div class="process-arrow"><span>→</span><small>Request</small></div>
+    <div class="process-card"><span class="process-card__icon">↔</span><strong>API</strong><small>Carries information</small></div>
+    <div class="process-arrow"><span>→</span><small>Process</small></div>
+    <div class="process-card"><span class="process-card__icon">⚙️</span><strong>Backend</strong><small>Rules and logic</small></div>
+    <div class="process-arrow"><span>→</span><small>Store</small></div>
+    <div class="process-card"><span class="process-card__icon">🗄️</span><strong>Database</strong><small>Persistent data</small></div>
+  </div>
+  <div class="purple-card reveal d4" style="margin-top: 44px; padding: 28px 36px;">
+    <p style="font-size: 25px; color: var(--foreground);">A requirement tells us what should happen through this flow. A user story tells us <strong class="highlight">who</strong> starts it, <strong class="highlight">what</strong> they do, and <strong class="highlight">why</strong>.</p>
+  </div>
+</section>
+
+<!-- SLIDE 5: API Request and Response -->
+<section class="slide" style="background: radial-gradient(ellipse at 30% 35%, rgba(6,182,212,0.12) 0%, transparent 54%), var(--gradient-1);">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">An API Carries <span class="highlight">Requests and Responses</span></h2>
+  <div class="process-path reveal d3">
+    <div class="process-card"><span class="process-card__icon">👆</span><strong>Tap</strong><small>User submits an action</small></div>
+    <div class="process-arrow"><span>→</span><small>Event</small></div>
+    <div class="process-card"><span class="process-card__icon">📤</span><strong>Request</strong><small>Sends the needed data</small></div>
+    <div class="process-arrow"><span>→</span><small>API</small></div>
+    <div class="process-card"><span class="process-card__icon">✅</span><strong>Check + Process</strong><small>Backend validates and acts</small></div>
+    <div class="process-arrow"><span>→</span><small>Return</small></div>
+    <div class="process-card"><span class="process-card__icon">📥</span><strong>Response</strong><small>Success, data, or error</small></div>
+    <div class="process-arrow"><span>→</span><small>Render</small></div>
+    <div class="process-card"><span class="process-card__icon">✨</span><strong>Screen Updates</strong><small>User sees the result</small></div>
+  </div>
+  <div class="purple-card reveal d4" style="margin-top: 48px; padding: 30px 38px;">
+    <p style="font-size: 26px; color: var(--foreground);"><strong class="highlight">Example:</strong> A student submits a lost-item form. The app sends the details, the backend saves them, then the API returns success so the app can show a confirmation.</p>
+  </div>
+</section>
+
+<!-- SLIDE 6: Tool Roles -->
+<section class="slide" style="background: radial-gradient(ellipse at 30% 35%, rgba(168,85,247,0.13) 0%, transparent 52%), var(--gradient-1);">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">Our Tools Have <span class="highlight">Different Jobs</span></h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card tool-role">
+      <span class="tool-role__icon">🎨</span>
+      <h3 class="highlight">FlutterFlow</h3>
+      <p>Build screens, navigation, and interactions visually.</p>
+    </div>
+    <div class="grid-card tool-role">
+      <span class="tool-role__icon">🔐</span>
+      <h3 class="highlight-cyan">Supabase</h3>
+      <p>Manage sign-in, data, and backend services.</p>
+    </div>
+    <div class="grid-card tool-role">
+      <span class="tool-role__icon">🧩</span>
+      <h3 class="highlight">Dart</h3>
+      <p>Supports the Flutter app and custom logic when needed.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 34px;">Today, we are not building screens yet. We are deciding <strong class="highlight">what</strong> the screens and data need to do first.</p>
+</section>
+
+<!-- SLIDE 7: Dart -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2"><span class="highlight">Dart</span> Gives a Flutter App Its Behavior</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 class="highlight">What Dart does</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Controls conditions and calculations</li>
+        <li style="font-size: 22px;">Handles values, lists, and data logic</li>
+        <li style="font-size: 22px;">Lets a Flutter app react to user actions</li>
+      </ul>
+    </div>
+    <div class="grid-card" style="border-color: rgba(6,182,212,0.38);">
+      <h3 class="highlight-cyan">What this means for us</h3>
+      <p>FlutterFlow creates Flutter and Dart code behind the visual builder. You do not need to write Dart today, but knowing its role helps you understand custom actions later.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 30px; color: var(--accent);">For now: plan the behavior clearly. Later: FlutterFlow and Dart turn that plan into working actions.</p>
+</section>
+
+<!-- SLIDE 8: Required Accounts -->
+<section class="slide" style="background: radial-gradient(ellipse at 72% 30%, rgba(6,182,212,0.11) 0%, transparent 52%), var(--gradient-1);">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">Accounts to <span class="highlight">Prepare</span></h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card">
+      <h3 class="highlight">FlutterFlow</h3>
+      <p>Create and design your app screens. Sign in with a Google account.</p>
+    </div>
+    <div class="grid-card">
+      <h3 class="highlight-cyan">Supabase</h3>
+      <p>Store data, manage authentication, and power your backend. Create an account with your email and password.</p>
+    </div>
+    <div class="grid-card">
+      <h3 class="highlight">Figma (Optional)</h3>
+      <p>Use it to prepare web UI mockups before you build them in FlutterFlow.</p>
+    </div>
+  </div>
+  <div class="purple-card reveal d4" style="margin-top: 36px; padding: 26px 34px;">
+    <p style="font-size: 25px; color: var(--foreground);">This is the first setup reminder: use an email you can access, keep your login details safe, and prepare these accounts before the building sessions begin.</p>
+  </div>
+</section>
+
+<!-- SLIDE 9: App Quality -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">A Great App Is More Than <span class="highlight">a Feature List</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 class="highlight">It must help people</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Solves a real, clear problem</li>
+        <li style="font-size: 22px;">Fits the target user</li>
+        <li style="font-size: 22px;">Makes the main task simple</li>
+      </ul>
+    </div>
+    <div class="grid-card" style="border-color: rgba(6,182,212,0.35);">
+      <h3 class="highlight-cyan">It must work well</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Clear screens and navigation</li>
+        <li style="font-size: 22px;">Reliable data and useful feedback</li>
+        <li style="font-size: 22px;">Safe, respectful handling of users</li>
+      </ul>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 28px; color: var(--accent);">These become your functional and non-functional requirements today.</p>
+</section>
+
+<!-- SLIDE 7: Development Cycle -->
+<section class="slide" style="background: radial-gradient(ellipse at 72% 35%, rgba(6,182,212,0.1) 0%, transparent 55%), var(--gradient-1);">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Essential Foundations Refresh</span>
+  <h2 class="reveal d2">The App Development <span class="highlight">Cycle</span></h2>
+  <div class="flow-diagram reveal d3" style="justify-content: center; margin-top: 50px;">
+    <div class="flow-box" style="border-color: rgba(168,85,247,0.5);">Plan</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Design</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Build</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Test</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">Improve</div>
+    <div class="flow-arrow">&circlearrowright;</div>
+  </div>
+  <div class="purple-card reveal d4" style="margin-top: 54px; text-align: center; padding: 32px 40px;">
+    <p style="font-size: 30px; color: var(--foreground);"><strong class="highlight">Today = Plan.</strong> We turn your problem into users, requirements, screens, and a user flow before the build starts.</p>
+  </div>
+</section>
+
+<!-- SLIDE 8: Today's Goal -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Learning Outcomes</span>
+  <h2 class="reveal d2">By the End, You Should <span class="highlight">Understand</span>:</h2>
+  <ul class="reveal d3">
+    <li>How a clear problem statement guides the app plan</li>
+    <li>How target users and personas shape requirements</li>
+    <li>How user stories connect a user, an action, and a benefit</li>
+    <li>The difference between functional and non-functional requirements</li>
+    <li>How screen lists and user flows describe the app structure</li>
+    <li>How MVP and MoSCoW keep the project realistic</li>
+  </ul>
+</section>
+
+<!-- SLIDE 4: Why Plan Before Building -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Fundamentals</span>
+  <h2 class="reveal d2">Why Plan <span class="highlight">Before</span> Building?</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card" style="border-color: rgba(239,68,68,0.3);">
+      <h3 style="color: #ef4444; font-size: 26px;">❌ Without Planning</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Build random features</li>
+        <li style="font-size: 22px;">Forget important screens</li>
+        <li style="font-size: 22px;">Rebuild things 3x</li>
+        <li style="font-size: 22px;">Confusing user experience</li>
+        <li style="font-size: 22px;">Miss deadlines</li>
+      </ul>
+    </div>
+    <div class="grid-card" style="border-color: rgba(34,197,94,0.3);">
+      <h3 style="color: #22c55e; font-size: 26px;">✅ With Planning</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Clear build order</li>
+        <li style="font-size: 22px;">Nothing gets missed</li>
+        <li style="font-size: 22px;">Build once, build right</li>
+        <li style="font-size: 22px;">Smooth user journey</li>
+        <li style="font-size: 22px;">Finish on time</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- STUDENT EXPLAINER: Planning traceability -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">The Planning Chain</span>
+  <h2 class="reveal d2">Each planning artifact should connect to the <span class="highlight">next</span></h2>
+  <div class="purple-card reveal d3" style="text-align:center;">
+    <p style="font-size:27px;color:var(--foreground);line-height:2.15;">
+      <strong class="highlight">Problem</strong> → identifies the need<br>
+      <strong class="highlight-cyan">Target user</strong> → identifies who has the need<br>
+      <strong class="highlight">User story</strong> → describes the user's goal<br>
+      <strong class="highlight-cyan">Requirement</strong> → states what the app must support<br>
+      <strong class="highlight">Screen + flow</strong> → shows where and how it happens
+    </p>
+  </div>
+  <p class="reveal d4" style="margin-top:22px;">If a feature cannot be traced back to a real user need, it may not belong in the first version.</p>
+</section>
+
+<!-- SLIDE 5: What Are Requirements -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Core Concept</span>
+  <h2 class="reveal d2">What Are <span class="highlight">Requirements</span>?</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 30px; color: var(--foreground);"><strong>Requirements</strong> = A clear list of what your app MUST do and how it should behave.</p>
+    <p style="margin-top: 16px;">Think of it as a checklist before construction. A builder doesn't start without blueprints. You don't build an app without requirements.</p>
+  </div>
+  <p class="reveal d4" style="margin-top: 20px;">Two types: <strong class="highlight">Functional</strong> (what it does) and <strong class="highlight-cyan">Non-functional</strong> (how it performs)</p>
+</section>
+
+<!-- SLIDE 6: Functional Requirements -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Functional Requirements</span>
+  <h2 class="reveal d2"><span class="highlight">Functional</span> = What It Does</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 26px; color: var(--foreground); margin-bottom: 16px;">Specific features and actions the app must perform:</p>
+    <ul>
+      <li style="font-size: 24px; color: var(--foreground);">Users can <strong>register</strong> with email and password</li>
+      <li style="font-size: 24px; color: var(--foreground);">Users can <strong>post</strong> a lost item with photo and description</li>
+      <li style="font-size: 24px; color: var(--foreground);">Users can <strong>search</strong> items by category</li>
+      <li style="font-size: 24px; color: var(--foreground);">Users can <strong>claim</strong> a found item</li>
+      <li style="font-size: 24px; color: var(--foreground);">Admin can <strong>delete</strong> inappropriate posts</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SLIDE 7: Non-Functional Requirements -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Non-Functional Requirements</span>
+  <h2 class="reveal d2"><span class="highlight-cyan">Non-Functional</span> = How It Behaves</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 26px; color: var(--foreground); margin-bottom: 16px;">Quality attributes and constraints:</p>
+    <ul>
+      <li style="font-size: 24px; color: var(--foreground);"><strong>Performance:</strong> Pages load within 3 seconds</li>
+      <li style="font-size: 24px; color: var(--foreground);"><strong>Security:</strong> Passwords are encrypted, data is protected</li>
+      <li style="font-size: 24px; color: var(--foreground);"><strong>Usability:</strong> Any user can complete core task in in 5 clicks or fewer</li>
+      <li style="font-size: 24px; color: var(--foreground);"><strong>Compatibility:</strong> Works in modern browsers on laptop and phone</li>
+      <li style="font-size: 24px; color: var(--foreground);"><strong>Availability:</strong> App accessible 24/7</li>
+    </ul>
+  </div>
+</section>
+
+<!-- STUDENT EXPLAINER: Measurable requirements -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Make It Testable</span>
+  <h2 class="reveal d2">Strong requirements can be <span class="highlight-cyan">checked</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="color:#ef4444;">Too vague</h3>
+      <p style="font-size:25px;margin-top:14px;">"The app should be fast."</p>
+      <p style="font-size:22px;margin-top:18px;">There is no agreed meaning of fast, so the team cannot reliably test it.</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="color:#22c55e;">Measurable</h3>
+      <p style="font-size:25px;margin-top:14px;">"The item list should load within three seconds on a stable connection."</p>
+      <p style="font-size:22px;margin-top:18px;">The condition and expected result are clear enough to verify.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top:22px;color:var(--accent);"><strong>Useful test:</strong> could someone decide pass or fail from this sentence?</p>
+</section>
+
+<!-- SLIDE 8: Functional vs Non-Functional Table -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Comparison</span>
+  <h2 class="reveal d2">Side by Side</h2>
+  <table class="reveal d3">
+    <tr><th>Functional</th><th>Non-Functional</th></tr>
+    <tr><td>User can log in</td><td>Login takes  2 seconds</td></tr>
+    <tr><td>User can upload photo</td><td>Max file size 5MB</td></tr>
+    <tr><td>App sends notifications</td><td>Notifications arrive within 10s</td></tr>
+    <tr><td>User can search items</td><td>Search results load in  1s</td></tr>
+    <tr><td>Admin can ban users</td><td>Only admin role can access admin panel</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top: 20px; font-size: 24px; color: var(--accent);">Functional = the WHAT. Non-functional = the HOW WELL.</p>
+</section>
+
+<!-- SLIDE 9: Who Are Your Users? -->
+<section class="slide" style="background: radial-gradient(ellipse at 30% 60%, rgba(168,85,247,0.12) 0%, transparent 50%), var(--gradient-1);">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Know Your Users</span>
+  <h2 class="reveal d2">Who Will Use <span class="highlight">Your App</span>?</h2>
+  <p class="reveal d3" style="font-size: 30px;">Before you write requirements, you need to know WHO you're building for. Different users have different needs.</p>
+  <div class="grid-2 reveal d4">
+    <div class="grid-card">
+      <h3 style="font-size: 26px; color: var(--accent);">Questions to Ask:</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Who has this problem?</li>
+        <li style="font-size: 22px;">How old are they?</li>
+        <li style="font-size: 22px;">Are they tech-savvy?</li>
+        <li style="font-size: 22px;">What device do they use?</li>
+      </ul>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 26px; color: var(--accent-secondary);">User Types:</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Primary user (main target)</li>
+        <li style="font-size: 22px;">Secondary user (occasional)</li>
+        <li style="font-size: 22px;">Admin (manages the app)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: User Persona -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">User Persona</span>
+  <h2 class="reveal d2">Create a <span class="highlight">Persona</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 26px; color: var(--foreground); margin-bottom: 16px;"><strong>Example: Campus Lost & Found App</strong></p>
+    <table style="margin-top: 0;">
+      <tr><td style="width: 180px; color: var(--accent); font-weight: 600;">Name</td><td>Maria, 20 years old</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 600;">Role</td><td>College student (3rd year BSIT)</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 600;">Device</td><td>Laptop and Android phone, uses Chrome</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 600;">Tech Level</td><td>Average (uses social media daily)</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 600;">Pain Point</td><td>Lost her calculator, doesn't know where to report</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 600;">Goal</td><td>Quickly report lost item and get notified when found</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 11: User Stories Intro -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">User Stories</span>
+  <h2 class="reveal d2">What Are <span class="highlight">User Stories</span>?</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 30px; color: var(--foreground);">A user story describes a feature from the USER's perspective:</p>
+    <div class="code-block" style="margin-top: 20px; background: rgba(168,85,247,0.1); border-color: var(--accent);">
+      As a <span class="highlight">[type of user]</span>,<br>
+      I want to <span class="highlight-cyan">[do something]</span>,<br>
+      So that <span class="highlight">[I get some benefit]</span>.
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top: 20px;">This format forces you to think about WHO, WHAT, and WHY for every feature.</p>
+</section>
+
+<!-- SLIDE 12: User Story Examples -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Examples</span>
+  <h2 class="reveal d2">User Story Examples</h2>
+  <div class="reveal d3" style="margin-top: 20px;">
+    <div class="code-block" style="font-size: 22px; margin-bottom: 16px;">
+      As a <span class="highlight">student</span>, I want to <span class="highlight-cyan">post a lost item with a photo</span>, so that <span class="highlight">others can help me find it</span>.
+    </div>
+    <div class="code-block" style="font-size: 22px; margin-bottom: 16px;">
+      As a <span class="highlight">student</span>, I want to <span class="highlight-cyan">browse found items by category</span>, so that <span class="highlight">I can quickly find my item</span>.
+    </div>
+    <div class="code-block" style="font-size: 22px; margin-bottom: 16px;">
+      As a <span class="highlight">student</span>, I want to <span class="highlight-cyan">receive a notification when my item is found</span>, so that <span class="highlight">I don't have to keep checking</span>.
+    </div>
+    <div class="code-block" style="font-size: 22px;">
+      As an <span class="highlight">admin</span>, I want to <span class="highlight-cyan">remove fake or inappropriate posts</span>, so that <span class="highlight">the platform stays trustworthy</span>.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: Writing Good User Stories -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Best Practices</span>
+  <h2 class="reveal d2">Good vs Bad Stories</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card" style="border-color: rgba(239,68,68,0.3);">
+      <h3 style="color: #ef4444; font-size: 24px;">❌ Bad</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 20px;">"The app should have a database"</li>
+        <li style="font-size: 20px;">"Make it look nice"</li>
+        <li style="font-size: 20px;">"Users can do stuff"</li>
+        <li style="font-size: 20px;">"Add a button"</li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 20px; color: #ef4444;">Too vague, too technical, or no user perspective</p>
+    </div>
+    <div class="grid-card" style="border-color: rgba(34,197,94,0.3);">
+      <h3 style="color: #22c55e; font-size: 24px;">✅ Good</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 20px;">"As a user, I want to filter by date so I find recent items"</li>
+        <li style="font-size: 20px;">"As a user, I want to see item photos so I can identify mine"</li>
+        <li style="font-size: 20px;">"As admin, I want to view reports so I can take action"</li>
+      </ul>
+      <p style="margin-top: 12px; font-size: 20px; color: #22c55e;">Specific, user-focused, has clear benefit</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15: From Stories to Screens -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Screen Identification</span>
+  <h2 class="reveal d2">Stories → <span class="highlight">Screens</span></h2>
+  <p class="reveal d3" style="font-size: 26px;">Every user story implies one or more screens. Let's extract them:</p>
+  <table class="reveal d4">
+    <tr><th>User Story</th><th>Implied Screen(s)</th></tr>
+    <tr><td style="font-size: 20px;">"I want to register"</td><td style="font-size: 20px;">Registration Page, Email Verification</td></tr>
+    <tr><td style="font-size: 20px;">"I want to post a lost item"</td><td style="font-size: 20px;">Create Post Form, Camera/Upload</td></tr>
+    <tr><td style="font-size: 20px;">"I want to browse items"</td><td style="font-size: 20px;">Item List Page, Filter/Search</td></tr>
+    <tr><td style="font-size: 20px;">"I want to see item details"</td><td style="font-size: 20px;">Item Detail Page</td></tr>
+    <tr><td style="font-size: 20px;">"I want to manage my profile"</td><td style="font-size: 20px;">Profile Page, Edit Profile</td></tr>
+  </table>
+</section>
+
+<!-- SLIDE 16: Common Screen Patterns -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Screen Patterns</span>
+  <h2 class="reveal d2">Common App Screens</h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">🔐</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Login/Register</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">🏠</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Home/Dashboard</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">📋</h3>
+      <p style="font-size: 22px; color: var(--foreground);">List View</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">📄</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Detail View</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">📝</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Form/Create</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">👤</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Profile</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">⚙️</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Settings</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">🔍</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Search</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <h3 style="font-size: 36px;">🔔</h3>
+      <p style="font-size: 22px; color: var(--foreground);">Notifications</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 17: Screen List Example -->
+<section class="slide screen-list-slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Example</span>
+  <h2 class="reveal d2">Screen List: Lost &amp; Found App</h2>
+  <div class="grid-2 reveal d3">
+    <div>
+      <p style="font-size: 24px; color: var(--accent); font-weight: 600; margin-bottom: 12px;">Student Screens:</p>
+      <ul style="gap: 10px;">
+        <li style="font-size: 22px;">1. Splash / Onboarding</li>
+        <li style="font-size: 22px;">2. Login</li>
+        <li style="font-size: 22px;">3. Register</li>
+        <li style="font-size: 22px;">4. Home (Feed of items)</li>
+        <li style="font-size: 22px;">5. Post Lost Item (Form)</li>
+        <li style="font-size: 22px;">6. Post Found Item (Form)</li>
+        <li style="font-size: 22px;">7. Item Detail</li>
+        <li style="font-size: 22px;">8. My Posts</li>
+        <li style="font-size: 22px;">9. Profile</li>
+        <li style="font-size: 22px;">10. Notifications</li>
+      </ul>
+    </div>
+    <div>
+      <p style="font-size: 24px; color: var(--accent-secondary); font-weight: 600; margin-bottom: 12px;">Admin Screens:</p>
+      <ul style="gap: 10px;">
+        <li style="font-size: 22px;">11. Admin Dashboard</li>
+        <li style="font-size: 22px;">12. Manage Reports</li>
+        <li style="font-size: 22px;">13. User Management</li>
+      </ul>
+      <p style="font-size: 24px; color: var(--accent); font-weight: 600; margin-top: 30px; margin-bottom: 12px;">Shared:</p>
+      <ul style="gap: 10px;">
+        <li style="font-size: 22px;">14. Search / Filter</li>
+        <li style="font-size: 22px;">15. Settings</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 18: What is User Flow -->
+<section class="slide" style="background: radial-gradient(ellipse at 50% 40%, rgba(6,182,212,0.1) 0%, transparent 50%), var(--gradient-1);">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">User Flow</span>
+  <h2 class="reveal d2">What is a <span class="highlight-cyan">User Flow</span>?</h2>
+  <div class="grid-2 reveal d3" style="align-items: stretch; margin-top: 18px;">
+    <div>
+      <div class="purple-card" style="height: 100%; display:flex; flex-direction:column; justify-content:center;">
+        <p style="font-size: 27px; color: var(--foreground);">A <strong>user flow</strong> maps the path a user takes through the app to complete one task.</p>
+        <ul style="margin-top: 22px;">
+          <li style="font-size: 21px;"><strong class="highlight">Start:</strong> where the task begins</li>
+          <li style="font-size: 21px;"><strong class="highlight">Actions:</strong> screens and taps</li>
+          <li style="font-size: 21px;"><strong class="highlight-cyan">Decisions:</strong> branches and errors</li>
+          <li style="font-size: 21px;"><strong class="highlight-cyan">End:</strong> the completed outcome</li>
+        </ul>
+      </div>
+    </div>
+    <div class="interface-reference interface-reference--compact">
+      <div class="interface-reference__bar"><span class="interface-reference__dots"><i></i><i></i><i></i></span><span>FlutterFlow · Storyboard</span></div>
+      <div class="interface-reference__body"><img src="assets/student-visuals/flutterflow-storyboard.avif" alt="Official FlutterFlow Storyboard interface showing connected app screens" /></div>
+      <div class="interface-reference__caption"><span>A real builder view turns screen connections into a navigation map.</span><span>Official documentation</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 19: User Flow Symbols -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Notation</span>
+  <h2 class="reveal d2">Flow Diagram Symbols</h2>
+  <table class="reveal d3">
+    <tr><th>Symbol</th><th>Shape</th><th>Meaning</th></tr>
+    <tr><td>⬭</td><td>Rounded Rectangle</td><td>Start / End point</td></tr>
+    <tr><td>▭</td><td>Rectangle</td><td>Screen / Page / Action</td></tr>
+    <tr><td>◇</td><td>Diamond</td><td>Decision (Yes/No)</td></tr>
+    <tr><td>→</td><td>Arrow</td><td>Flow direction</td></tr>
+    <tr><td>▢</td><td>Dotted Rectangle</td><td>Optional / Conditional screen</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top: 20px; font-size: 24px;">You can draw these by hand or use tools like draw.io, Figma, or even pen and paper.</p>
+</section>
+
+<!-- SLIDE 20: Simple Login Flow -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Example Flow</span>
+  <h2 class="reveal d2">Login Flow</h2>
+  <div class="flowchart-illustration reveal d3">
+    <svg class="flowchart-svg login-flow-svg" viewBox="0 0 1500 520" role="img" aria-label="Login user flow">
+      <defs>
+        <marker id="login-flow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a855f7" /></marker>
+      </defs>
+
+      <path class="connector" d="M200 102 H260" />
+      <path class="connector" d="M425 102 H480" />
+      <path class="connector connector-green" d="M620 102 H760" />
+      <path class="connector connector-green" d="M920 102 H1045" />
+      <path class="connector" d="M550 172 V235" />
+      <path class="connector" d="M633 267 H710" />
+      <path class="connector connector-green" d="M850 267 H990" />
+      <path class="connector connector-green" d="M1150 267 H1215" />
+      <path class="connector connector-danger" d="M780 337 V390" />
+      <path class="connector connector-danger" d="M860 422 H940" />
+      <path class="connector" d="M1100 422 H1140 V486 H550 V299" />
+
+      <rect class="terminal-node" x="60" y="70" width="140" height="64" rx="32" />
+      <text class="node-label" x="130" y="110">Start</text>
+      <rect class="process-node" x="260" y="70" width="165" height="64" rx="4" />
+      <text class="node-label" x="342" y="110">Open App</text>
+      <polygon class="decision-node" points="550,32 620,102 550,172 480,102" />
+      <text class="decision-label" x="550" y="96"><tspan x="550">Logged</tspan><tspan x="550" dy="20">in?</tspan></text>
+      <text class="path-label" x="690" y="88">Yes</text>
+      <rect class="process-node success-node" x="760" y="70" width="160" height="64" rx="4" />
+      <text class="node-label" x="840" y="97"><tspan x="840">Home</tspan><tspan x="840" dy="20">Page</tspan></text>
+      <rect class="terminal-node" x="1045" y="70" width="140" height="64" rx="32" />
+      <text class="node-label" x="1115" y="110">End</text>
+
+      <text class="path-label" x="578" y="212">No</text>
+      <rect class="process-node" x="468" y="235" width="165" height="64" rx="4" />
+      <text class="node-label" x="550" y="262"><tspan x="550">Login</tspan><tspan x="550" dy="20">Screen</tspan></text>
+      <polygon class="decision-node" points="780,197 850,267 780,337 710,267" />
+      <text class="decision-label" x="780" y="261"><tspan x="780">Credentials</tspan><tspan x="780" dy="20">valid?</tspan></text>
+      <text class="path-label" x="920" y="252">Yes</text>
+      <rect class="process-node success-node" x="990" y="235" width="160" height="64" rx="4" />
+      <text class="node-label" x="1070" y="262"><tspan x="1070">Home</tspan><tspan x="1070" dy="20">Page</tspan></text>
+      <rect class="terminal-node" x="1215" y="235" width="140" height="64" rx="32" />
+      <text class="node-label" x="1285" y="275">End</text>
+
+      <text class="path-label" x="807" y="370">No</text>
+      <rect class="process-node danger-node" x="700" y="390" width="160" height="64" rx="4" />
+      <text class="node-label" x="780" y="417"><tspan x="780">Show</tspan><tspan x="780" dy="20">Error</tspan></text>
+      <rect class="process-node" x="940" y="390" width="160" height="64" rx="4" />
+      <text class="node-label" x="1020" y="430">Retry</text>
+      <text class="return-label" x="835" y="512">Return to Login Screen</text>
+    </svg>
+  </div>
+</section>
+
+<!-- SLIDE 21: Complete App Flow Example -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Full Example</span>
+  <h2 class="reveal d2">Post Lost Item Flow</h2>
+  <div class="flowchart-illustration reveal d3">
+    <svg class="flowchart-svg post-flow-svg" viewBox="0 0 1600 530" role="img" aria-label="Post lost item user flow">
+      <defs>
+        <marker id="post-flow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a855f7" /></marker>
+      </defs>
+
+      <path class="connector" d="M180 72 H250" />
+      <path class="connector" d="M400 72 H470" />
+      <path class="connector" d="M650 72 H720" />
+      <path class="connector" d="M795 104 V170" />
+      <path class="connector" d="M870 202 H950" />
+      <path class="connector" d="M1110 202 H1180" />
+      <path class="connector" d="M1330 202 H1360" />
+      <path class="connector connector-green" d="M1430 272 V342 H1320" />
+      <path class="connector connector-green" d="M1170 342 H1100" />
+      <path class="connector connector-green" d="M930 342 H870" />
+      <path class="connector connector-danger" d="M1430 272 V442 H1300" />
+      <path class="connector" d="M1100 442 H680 V72 H720" />
+
+      <rect class="terminal-node" x="50" y="40" width="130" height="64" rx="32" />
+      <text class="node-label" x="115" y="80">Start</text>
+      <rect class="process-node" x="250" y="40" width="150" height="64" rx="4" />
+      <text class="node-label" x="325" y="80">Home</text>
+      <rect class="process-node" x="470" y="40" width="180" height="64" rx="4" />
+      <text class="node-label" x="560" y="67"><tspan x="560">Tap Report</tspan><tspan x="560" dy="20">Lost</tspan></text>
+      <rect class="process-node" x="720" y="40" width="150" height="64" rx="4" />
+      <text class="node-label" x="795" y="80">Fill Form</text>
+
+      <rect class="process-node" x="720" y="170" width="150" height="64" rx="4" />
+      <text class="node-label" x="795" y="197"><tspan x="795">Upload</tspan><tspan x="795" dy="20">Photo</tspan></text>
+      <rect class="process-node" x="950" y="170" width="160" height="64" rx="4" />
+      <text class="node-label" x="1030" y="197"><tspan x="1030">Select</tspan><tspan x="1030" dy="20">Category</tspan></text>
+      <rect class="process-node" x="1180" y="170" width="150" height="64" rx="4" />
+      <text class="node-label" x="1255" y="197"><tspan x="1255">Set</tspan><tspan x="1255" dy="20">Location</tspan></text>
+      <polygon class="decision-node" points="1430,132 1500,202 1430,272 1360,202" />
+      <text class="decision-label" x="1430" y="196"><tspan x="1430">Form</tspan><tspan x="1430" dy="20">complete?</tspan></text>
+
+      <text class="path-label" x="1380" y="310">Yes</text>
+      <rect class="process-node success-node" x="1170" y="310" width="150" height="64" rx="4" />
+      <text class="node-label" x="1245" y="350">Submit</text>
+      <rect class="process-node success-node" x="930" y="310" width="170" height="64" rx="4" />
+      <text class="node-label" x="1015" y="337"><tspan x="1015">Show</tspan><tspan x="1015" dy="20">Success</tspan></text>
+      <rect class="terminal-node" x="740" y="310" width="130" height="64" rx="32" />
+      <text class="node-label" x="805" y="350">End</text>
+
+      <text class="path-label" x="1470" y="330">No</text>
+      <rect class="process-node danger-node" x="1100" y="410" width="200" height="64" rx="4" />
+      <text class="node-label" x="1200" y="437"><tspan x="1200">Highlight Missing</tspan><tspan x="1200" dy="20">Fields</tspan></text>
+      <text class="return-label" x="855" y="510">Return to Fill Form</text>
+    </svg>
+  </div>
+</section>
+
+<!-- STUDENT EXPLAINER: User-flow paths -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Complete the Flow</span>
+  <h2 class="reveal d2">Plan the happy path, alternatives, and <span class="highlight">errors</span></h2>
+  <div class="grid-3 reveal d3">
+    <div class="grid-card">
+      <h3 style="font-size:26px;color:#22c55e;">Happy path</h3>
+      <p style="font-size:21px;margin-top:12px;">The expected route when the user's information is valid and the task succeeds.</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size:26px;color:var(--accent-secondary);">Alternative path</h3>
+      <p style="font-size:21px;margin-top:12px;">A valid different choice, such as browsing as a guest or choosing another category.</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size:26px;color:#ef4444;">Error path</h3>
+      <p style="font-size:21px;margin-top:12px;">What happens when data is missing, credentials are wrong, or a request fails.</p>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top:22px;">Every decision diamond should lead somewhere useful: continue, correct the problem, retry, or safely cancel.</p>
+</section>
+
+<!-- SLIDE 23: Linear vs Branching Flows -->
+<section class="slide">
+  <span class="section-number">07</span>
+  <span class="eyebrow reveal d1">Flow Types</span>
+  <h2 class="reveal d2">Linear vs Branching</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="font-size: 26px; color: var(--accent);">Linear Flow</h3>
+      <p style="font-size: 22px; margin-top: 12px;">Step 1 → Step 2 → Step 3 → Done</p>
+      <p style="font-size: 20px; margin-top: 8px;">Example: Onboarding screens, checkout process</p>
+      <p style="font-size: 20px; margin-top: 12px; color: var(--accent);">Simple, predictable, easy to build</p>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size: 26px; color: var(--accent-secondary);">Branching Flow</h3>
+      <p style="font-size: 22px; margin-top: 12px;">Decision → Path A OR Path B → Merge</p>
+      <p style="font-size: 20px; margin-top: 8px;">Example: Login (success vs error), Role-based (admin vs user)</p>
+      <p style="font-size: 20px; margin-top: 12px; color: var(--accent-secondary);">Complex, realistic, handles edge cases</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 24: Navigation Patterns -->
+<section class="slide">
+  <span class="section-number">07</span>
+  <span class="eyebrow reveal d1">Navigation</span>
+  <h2 class="reveal d2">Navigation Patterns</h2>
+  <div class="navigation-layout reveal d3">
+    <div class="navigation-patterns">
+      <div class="nav-pattern"><span class="nav-pattern__icon">⌄</span><div><strong>Top Bar / Sidebar</strong><p>Keeps Home, Browse, My Items, and Profile visible as primary web destinations.</p></div></div>
+      <div class="nav-pattern"><span class="nav-pattern__icon">☰</span><div><strong>Drawer</strong><p>Reveals a side menu when the app has many destinations or secondary tools.</p></div></div>
+      <div class="nav-pattern"><span class="nav-pattern__icon">▱</span><div><strong>Navigation Stack</strong><p>Opens detail pages on top of the current page; Back returns to the previous route.</p></div></div>
+    </div>
+    <div class="interface-reference interface-reference--compact">
+      <div class="interface-reference__bar"><span class="interface-reference__dots"><i></i><i></i><i></i></span><span>FlutterFlow · Nav Bar settings</span></div>
+      <div class="interface-reference__body" style="background:#eef0f5;"><img src="assets/student-visuals/flutterflow-nav-bar.png" alt="Official FlutterFlow Nav Bar and App Bar settings reference" /></div>
+      <div class="interface-reference__caption"><span>Navigation choices are configured, previewed, and tested before release.</span><span>Official documentation</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 25: CRUD Flow Pattern -->
+<section class="slide">
+  <span class="section-number">07</span>
+  <span class="eyebrow reveal d1">Key Pattern</span>
+  <h2 class="reveal d2">CRUD Flow Pattern</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 26px; color: var(--foreground); margin-bottom: 16px;">Almost every app is CRUD at its core:</p>
+    <table style="margin: 0;">
+      <tr><td style="color: var(--accent); font-weight: 700; font-size: 26px;">C</td><td style="font-size: 24px;">Create → Form screen → Submit → Save to database</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 700; font-size: 26px;">R</td><td style="font-size: 24px;">Read → List screen → Load data → Display</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 700; font-size: 26px;">U</td><td style="font-size: 24px;">Update → Edit form → Save changes → Confirm</td></tr>
+      <tr><td style="color: var(--accent); font-weight: 700; font-size: 26px;">D</td><td style="font-size: 24px;">Delete → Confirm dialog → Remove → Refresh list</td></tr>
+    </table>
+  </div>
+  <p class="reveal d4" style="margin-top: 20px;">Your app will definitely have at least one CRUD feature. Most have several.</p>
+</section>
+
+<!-- SLIDE 26: MVP Concept -->
+<section class="slide" style="background: radial-gradient(ellipse at 60% 50%, rgba(168,85,247,0.1) 0%, transparent 50%), var(--gradient-1);">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Scope</span>
+  <h2 class="reveal d2">What is <span class="highlight">MVP</span>?</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 30px; color: var(--foreground);"><strong>Minimum Viable Product</strong> = The simplest version of your app that still works and delivers value.</p>
+    <p style="margin-top: 16px; font-size: 26px;">It's NOT the final product. It's the FIRST version that you can test with real users.</p>
+  </div>
+  <p class="reveal d4" style="margin-top: 20px; font-size: 26px;">For this course, your MVP should have: Login + 1 main CRUD feature + basic navigation. Everything else is enhancement.</p>
+</section>
+
+<!-- SLIDE 27: Scope - In vs Out -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Prioritization</span>
+  <h2 class="reveal d2">What's In vs What's Out</h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card" style="border-color: rgba(34,197,94,0.3);">
+      <h3 style="color: #22c55e; font-size: 24px;">✅ MVP (Must Have)</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">User registration / login</li>
+        <li style="font-size: 22px;">Core CRUD feature</li>
+        <li style="font-size: 22px;">Basic navigation</li>
+        <li style="font-size: 22px;">View list and details</li>
+        <li style="font-size: 22px;">Simple, clean UI</li>
+      </ul>
+    </div>
+    <div class="grid-card" style="border-color: rgba(251,191,36,0.3);">
+      <h3 style="color: #fbbf24; font-size: 24px;">⏳ Nice to Have (Later)</h3>
+      <ul style="margin-top: 12px;">
+        <li style="font-size: 22px;">Push notifications</li>
+        <li style="font-size: 22px;">Chat/messaging</li>
+        <li style="font-size: 22px;">Advanced search/filter</li>
+        <li style="font-size: 22px;">Dark mode</li>
+        <li style="font-size: 22px;">Social sharing</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 28: MoSCoW Prioritization -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Framework</span>
+  <h2 class="reveal d2">MoSCoW Method</h2>
+  <table class="reveal d3">
+    <tr><th>Priority</th><th>Meaning</th><th>Example</th></tr>
+    <tr><td style="color: #ef4444; font-weight: 700;">Must Have</td><td>App doesn't work without it</td><td>Login, main feature</td></tr>
+    <tr><td style="color: #f97316; font-weight: 700;">Should Have</td><td>Important but not critical</td><td>Profile edit, search</td></tr>
+    <tr><td style="color: #fbbf24; font-weight: 700;">Could Have</td><td>Nice bonus if time permits</td><td>Notifications, themes</td></tr>
+    <tr><td style="color: var(--muted-foreground); font-weight: 700;">Won't Have</td><td>Out of scope for now</td><td>Payment, chat, AI</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top: 20px; color: var(--accent); font-size: 24px;">Categorize ALL your features using this. Be honest about what's realistic in 18 weeks.</p>
+</section>
+
+<!-- STUDENT EXPLAINER: MoSCoW decisions -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">A Practical Decision Rule</span>
+  <h2 class="reveal d2">A Must Have protects the app's <span class="highlight-cyan">core value</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:25px;color:var(--foreground);"><strong class="highlight">Ask:</strong> If this feature is missing, can the target user still complete the app's main task?</p>
+    <p style="font-size:24px;margin-top:18px;"><strong>No</strong> → it is probably a <strong>Must Have</strong>.</p>
+    <p style="font-size:24px;margin-top:14px;"><strong>Yes, but the experience is weaker</strong> → it may be a <strong>Should Have</strong>.</p>
+    <p style="font-size:24px;margin-top:14px;"><strong>Yes, with little impact</strong> → it is likely a <strong>Could Have</strong>.</p>
+    <p style="font-size:24px;margin-top:14px;"><strong>Not realistic this semester</strong> → place it under <strong>Won't Have for now</strong>.</p>
+  </div>
+  <p class="reveal d4" style="margin-top:22px;">Prioritization is a scope decision, not a judgment that an idea is permanently unimportant.</p>
+</section>
+
+<!-- SLIDE 29: Requirements Document Structure -->
+<section class="slide">
+  <span class="section-number">09</span>
+  <span class="eyebrow reveal d1">Documentation</span>
+  <h2 class="reveal d2">Our Shared Project Requirements</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size: 24px; color: var(--foreground); line-height: 2.0;">
+      <strong class="highlight">1. Shared Project Scope &amp; Problem Statement</strong> (Campus Lost &amp; Found)<br>
+      <strong class="highlight-cyan">2. Campus Users</strong> (student and administrator personas)<br>
+      <strong class="highlight">3. User Stories</strong> (5-8 minimum)<br>
+      <strong class="highlight-cyan">4. Functional Requirements</strong> (feature list)<br>
+      <strong class="highlight">5. Non-Functional Requirements</strong> (quality attributes)<br>
+      <strong class="highlight-cyan">6. Screen List</strong> (all pages/screens)<br>
+      <strong class="highlight">7. User Flow Diagram</strong> (navigation map)<br>
+      <strong class="highlight-cyan">8. MoSCoW Prioritization</strong> (what's in MVP)
+    </p>
+  </div>
+  <p class="reveal d4" style="margin-top:18px;font-size:22px;color:var(--accent);">This is the guided class project for Prelim, Midterm, and Semifinal. The independent project will be assigned only after the shared app is complete.</p>
+</section>
+
+<!-- SLIDE 33: Session Recap -->
+<section class="slide">
+  <span class="section-number">10</span>
+  <span class="eyebrow reveal d1">Recap</span>
+  <h2 class="reveal d2">What We Covered</h2>
+  <ul class="reveal d3">
+    <li><strong class="highlight">Requirements</strong> = what your app must do (functional + non-functional)</li>
+    <li><strong class="highlight">User Stories</strong> = features from the user's perspective</li>
+    <li><strong class="highlight">Screen List</strong> = all pages your app needs</li>
+    <li><strong class="highlight">User Flow</strong> = how users navigate through your app</li>
+    <li><strong class="highlight">MVP</strong> = simplest working version first</li>
+    <li><strong class="highlight">MoSCoW</strong> = prioritize what matters</li>
+  </ul>
+</section>
+
+<!-- SLIDE 34: Next Session -->
+<section class="slide" style="background: radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.15) 0%, transparent 60%), var(--gradient-1); align-items:center; text-align:center;">
+  <span class="eyebrow reveal d1">Coming Up</span>
+  <h2 class="reveal d2">UI/UX Basics for Beginners</h2>
+  <div class="purple-card reveal d3" style="max-width:1100px;">
+    <p style="font-size:28px;color:var(--foreground);text-align:center;">The next lesson introduces design principles that make app interfaces clearer, easier to use, and more consistent.</p>
+  </div>
+  <p class="reveal d4" style="margin-top:28px;text-align:center;">We will connect the requirements and screen list from this session to visual design decisions.</p>
+</section>
+<script src="assets/student-visuals/image-lightbox.js?v=2"></script>
+</body>
+</html>

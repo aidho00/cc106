@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CC 106 Application Development and Emerging Technologies class materials organized by Prelim, Midterm, Semi Final, and Final terms.">
+  <meta name="theme-color" content="#0d0a1a">
+  <title>CC 106 Learning Hub | Application Development</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #0d0a1a;
+      --background-deep: #080611;
+      --foreground: #f0eef6;
+      --muted: #aaa3bb;
+      --card: rgba(30, 21, 54, .82);
+      --card-solid: #1e1536;
+      --card-strong: #2d1b4e;
+      --accent: #a855f7;
+      --accent-secondary: #06b6d4;
+      --line: rgba(216, 180, 254, .16);
+      --shadow: 0 28px 90px rgba(3, 2, 10, .42);
+      --radius-lg: 28px;
+      --radius-md: 20px;
+      --max: 1180px;
+      --font-display: "Archivo Black", Impact, sans-serif;
+      --font-body: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 18% 2%, rgba(168, 85, 247, .21), transparent 34rem),
+        radial-gradient(ellipse at 92% 13%, rgba(6, 182, 212, .12), transparent 29rem),
+        linear-gradient(135deg, #0d0a1a 0%, #1a0e2e 48%, #0d0a1a 100%);
+      background-attachment: fixed;
+      color: var(--foreground);
+      font-family: var(--font-body);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: 999px;
+      filter: blur(8px);
+    }
+    body::before {
+      width: 360px;
+      height: 360px;
+      top: 24%;
+      left: -210px;
+      border: 1px solid rgba(168, 85, 247, .2);
+      box-shadow: 0 0 100px rgba(168, 85, 247, .08);
+    }
+    body::after {
+      width: 220px;
+      height: 220px;
+      right: -120px;
+      bottom: 11%;
+      border: 1px solid rgba(6, 182, 212, .16);
+      box-shadow: 0 0 90px rgba(6, 182, 212, .07);
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid var(--line);
+      background: rgba(13, 10, 26, .78);
+      backdrop-filter: blur(18px);
+    }
+    .nav-wrap {
+      width: min(calc(100% - 32px), var(--max));
+      min-height: 72px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 54%, #06b6d4 130%);
+      box-shadow: 0 12px 34px rgba(168, 85, 247, .28);
+      color: white;
+      font-size: 12px;
+      letter-spacing: -.04em;
+    }
+    .brand-copy {
+      display: block;
+      color: #fff;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .desktop-nav { display: flex; align-items: center; gap: 6px; }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 9px 11px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .nav-link:hover { color: white; background: rgba(168, 85, 247, .1); }
+    main { width: min(calc(100% - 32px), var(--max)); margin: 0 auto; }
+    .hero { padding: clamp(72px, 10vw, 126px) 0 42px; }
+    .hero-grid { display: block; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 25px;
+      color: #67e8f9;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 31px;
+      height: 2px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    }
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
+    h1 {
+      margin: 0;
+      max-width: 940px;
+      font-size: clamp(48px, 8.2vw, 100px);
+      line-height: .94;
+      letter-spacing: -.055em;
+    }
+    .gradient-text {
+      background: linear-gradient(105deg, #fff 4%, #d8b4fe 47%, #67e8f9 95%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero-copy {
+      margin: 29px 0 0;
+      max-width: 880px;
+      color: #bbb4c9;
+      font-size: clamp(17px, 2vw, 20px);
+    }
+    .term-summaries {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 52px;
+    }
+    .term-summary {
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(45, 27, 78, .66), rgba(22, 14, 42, .7));
+      text-decoration: none;
+      box-shadow: 0 14px 40px rgba(3, 2, 10, .12);
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .term-summary:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--term-accent) 52%, transparent);
+      background: linear-gradient(145deg, rgba(52, 31, 91, .86), rgba(27, 16, 50, .88));
+    }
+    .term-number {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: color-mix(in srgb, var(--term-accent) 16%, transparent);
+      color: var(--term-accent);
+      font-weight: 900;
+      font-size: 13px;
+    }
+    .term-summary-copy { min-width: 0; display: grid; }
+    .term-summary-copy strong { font-size: 13px; letter-spacing: .06em; }
+    .term-summary-copy small { color: var(--muted); }
+    .term-arrow { margin-left: auto; color: var(--term-accent); font-size: 20px; }
+    .toolbar {
+      position: sticky;
+      top: 86px;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 30px 0 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(22, 14, 42, .86);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 54px rgba(3, 2, 10, .28);
+    }
+    .search-wrap { position: relative; flex: 1 1 320px; }
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9286a9;
+      pointer-events: none;
+    }
+    #materialSearch {
+      width: 100%;
+      height: 46px;
+      padding: 0 16px 0 44px;
+      color: white;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      outline: none;
+      background: rgba(255, 255, 255, .055);
+    }
+    #materialSearch:focus {
+      border-color: rgba(168, 85, 247, .58);
+      background: rgba(255, 255, 255, .075);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, .12);
+    }
+    #materialSearch::placeholder { color: #817591; }
+    .filters { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    .filters::-webkit-scrollbar { display: none; }
+    .filter-button {
+      height: 40px;
+      white-space: nowrap;
+      padding: 0 13px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .filter-button:hover { color: white; background: rgba(168, 85, 247, .09); }
+    .filter-button.active {
+      color: #f3e8ff;
+      border-color: rgba(168, 85, 247, .34);
+      background: rgba(126, 34, 206, .24);
+    }
+    .results-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 4px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .progress-text strong { color: #fff; }
+    .term-section { padding: 86px 0 12px; }
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(250px, .75fr) minmax(320px, 1.25fr);
+      gap: 50px;
+      align-items: end;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    h2 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(40px, 6vw, 68px);
+      line-height: .95;
+      letter-spacing: -.045em;
+    }
+    .section-description { display: block; }
+    .section-description p {
+      max-width: 650px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .lesson-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      padding-top: 26px;
+    }
+    .lesson-card {
+      position: relative;
+      min-height: 315px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: linear-gradient(145deg, rgba(45, 27, 78, .86), rgba(25, 15, 48, .9));
+      box-shadow: 0 18px 54px rgba(3, 2, 10, .18);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .lesson-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 3px;
+      background: linear-gradient(90deg, var(--term-accent), transparent 75%);
+      opacity: .95;
+    }
+    .lesson-card::after {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      right: -75px;
+      top: -78px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--term-accent) 11%, transparent);
+      filter: blur(4px);
+      pointer-events: none;
+    }
+    .lesson-card:hover {
+      transform: translateY(-5px);
+      border-color: color-mix(in srgb, var(--term-accent) 38%, transparent);
+      box-shadow: 0 28px 68px rgba(3, 2, 10, .33);
+    }
+    .lesson-card.completed {
+      border-color: color-mix(in srgb, var(--term-accent) 43%, transparent);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--term-accent) 11%, #2d1b4e), #18102d);
+    }
+    .lesson-topline {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .lesson-session {
+      color: var(--term-accent);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .completion-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: #978ba8;
+      background: rgba(255, 255, 255, .025);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .completion-button:hover { color: white; border-color: rgba(255, 255, 255, .2); }
+    .check-icon {
+      width: 17px;
+      height: 17px;
+      display: grid;
+      place-items: center;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      font-size: 10px;
+    }
+    .lesson-card.completed .completion-button {
+      color: var(--term-accent);
+      border-color: color-mix(in srgb, var(--term-accent) 38%, transparent);
+      background: color-mix(in srgb, var(--term-accent) 9%, transparent);
+    }
+    .lesson-card.completed .check-icon {
+      color: #130d22;
+      border-color: var(--term-accent);
+      background: var(--term-accent);
+    }
+    .lesson-index {
+      position: absolute;
+      right: 18px;
+      top: 58px;
+      color: rgba(255, 255, 255, .045);
+      font-family: var(--font-display);
+      font-size: 76px;
+      line-height: 1;
+      letter-spacing: -.06em;
+      user-select: none;
+    }
+    .lesson-card h3 {
+      position: relative;
+      z-index: 1;
+      max-width: 94%;
+      margin: 42px 0 13px;
+      font-size: 23px;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+    .lesson-card p {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .lesson-footer {
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .open-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 13px;
+      border-radius: 11px;
+      color: #120b20;
+      background: var(--term-accent);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 900;
+      transition: filter .2s ease, transform .2s ease;
+    }
+    .open-button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .lesson-card.locked {
+      border-style: dashed;
+      border-color: rgba(184, 170, 204, .2);
+      background: linear-gradient(145deg, rgba(37, 29, 51, .78), rgba(18, 14, 29, .88));
+      box-shadow: none;
+      filter: saturate(.55);
+    }
+    .lesson-card.locked:hover {
+      transform: none;
+      border-color: rgba(184, 170, 204, .28);
+      box-shadow: none;
+    }
+    .lesson-card.locked::before {
+      background: linear-gradient(90deg, #766b87, transparent 75%);
+      opacity: .65;
+    }
+    .lesson-card.locked::after { opacity: .25; }
+    .lesson-card.locked h3 { color: #c6bfce; }
+    .lesson-card.locked .lesson-session { color: #91869f; }
+    .lesson-card.locked .lesson-index { color: rgba(255, 255, 255, .025); }
+    .lesson-card.locked .completion-button {
+      color: #91869f;
+      border-color: rgba(184, 170, 204, .16);
+      background: rgba(255, 255, 255, .018);
+      cursor: not-allowed;
+    }
+    .lesson-card.locked .check-icon {
+      width: auto;
+      height: auto;
+      border: 0;
+      border-radius: 0;
+      font-size: 12px;
+    }
+    .locked-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      border: 1px dashed rgba(184, 170, 204, .24);
+      border-radius: 11px;
+      color: #aaa0b7;
+      background: rgba(255, 255, 255, .025);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: not-allowed;
+      user-select: none;
+    }
+    .lock-icon {
+      display: inline-grid;
+      place-items: center;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .empty-state {
+      display: none;
+      margin: 70px 0 20px;
+      padding: 45px 24px;
+      text-align: center;
+      border: 1px dashed rgba(216, 180, 254, .22);
+      border-radius: 24px;
+      color: var(--muted);
+    }
+    .empty-state strong { display: block; color: white; font-size: 20px; margin-bottom: 5px; }
+    .site-footer {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 100px auto 0;
+      padding: 34px 0 46px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer-brand { color: white; font-weight: 850; }
+    .back-top { text-decoration: none; font-weight: 800; }
+    .back-top:hover { color: #d8b4fe; }
+    [hidden] { display: none !important; }
+    @media (max-width: 980px) {
+      .desktop-nav { display: none; }
+      .term-summaries { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { align-items: stretch; flex-direction: column; }
+      .search-wrap { flex-basis: auto; }
+      .filters { padding-bottom: 1px; }
+      .section-heading { grid-template-columns: 1fr; gap: 20px; align-items: start; }
+      .lesson-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 650px) {
+      :root { --radius-lg: 22px; }
+      .nav-wrap, main, .site-footer { width: min(calc(100% - 22px), var(--max)); }
+      .brand-copy { font-size: 14px; }
+      .hero { padding-top: 62px; }
+      h1 { font-size: clamp(46px, 15vw, 72px); }
+      .term-summaries { grid-template-columns: 1fr; }
+      .toolbar { top: 80px; margin-top: 20px; }
+      .results-row { flex-direction: column; gap: 3px; }
+      .term-section { padding-top: 68px; }
+      .lesson-grid { grid-template-columns: 1fr; }
+      .lesson-card { min-height: 292px; }
+      .site-footer { flex-direction: column; margin-top: 78px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body id="top">
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a class="brand" href="#top" aria-label="CC 106 Learning Hub home">
+        <span class="brand-mark">CC106</span>
+        <span class="brand-copy">CC 106 Learning Hub</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Term navigation"><a href="#term-p" class="nav-link">Prelim</a><a href="#term-m" class="nav-link">Midterm</a><a href="#term-semi-final" class="nav-link">Semi Final</a><a href="#term-f" class="nav-link">Final</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <span class="eyebrow">Application Development &amp; Emerging Technologies</span>
+      <div class="hero-grid">
+        <div>
+          <h1 id="page-title"><span class="gradient-text">Build ideas</span><br>into working apps.</h1>
+          <p class="hero-copy">CC 106 develops students’ practical skills in planning, designing, building, securing, and deploying responsive applications. Through FlutterFlow, Supabase, Dart fundamentals, and emerging technology features, students transform user needs into functional, data-driven web applications and complete an independent final project.</p>
+        </div>
+      </div>
+      <div class="term-summaries">
+<a class="term-summary" href="#term-p" style="--term-accent:#a855f7">
+  <span class="term-number">01</span>
+  <span class="term-summary-copy"><strong>PRELIM</strong><small>8 materials</small></span>
+  <span class="term-arrow" aria-hidden="true">→</span>
+</a>
+<a class="term-summary" href="#term-m" style="--term-accent:#06b6d4">
+  <span class="term-number">02</span>
+  <span class="term-summary-copy"><strong>MIDTERM</strong><small>10 materials</small></span>
+  <span class="term-arrow" aria-hidden="true">→</span>
+</a>
+<a class="term-summary" href="#term-semi-final" style="--term-accent:#8b5cf6">
+  <span class="term-number">03</span>
+  <span class="term-summary-copy"><strong>SEMI FINAL</strong><small>10 materials</small></span>
+  <span class="term-arrow" aria-hidden="true">→</span>
+</a>
+<a class="term-summary" href="#term-f" style="--term-accent:#ec4899">
+  <span class="term-number">04</span>
+  <span class="term-summary-copy"><strong>FINAL</strong><small>3 materials</small></span>
+  <span class="term-arrow" aria-hidden="true">→</span>
+</a></div>
+    </section>
+
+    <section class="toolbar" aria-label="Material search and filters">
+      <label class="search-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="materialSearch" type="search" placeholder="Search topics, sessions, or keywords…" autocomplete="off">
+      </label>
+      <div class="filters" role="group" aria-label="Filter materials by term">
+        <button class="filter-button active" type="button" data-filter="ALL">All</button>
+        <button class="filter-button" type="button" data-filter="P">Prelim</button>
+        <button class="filter-button" type="button" data-filter="M">Midterm</button>
+        <button class="filter-button" type="button" data-filter="SF">Semi Final</button>
+        <button class="filter-button" type="button" data-filter="F">Final</button>
+      </div>
+    </section>
+    <div class="results-row" aria-live="polite">
+      <span id="resultCount">Showing all 31 materials</span>
+      <span class="progress-text"><strong id="completedCount">0</strong> of 31 completed on this device</span>
+    </div>
+
+    
+<section class="term-section" id="term-p" data-section-term="P" style="--term-accent:#a855f7">
+  <div class="section-heading">
+    <div>
+      <h2>PRELIM</h2>
+    </div>
+    <div class="section-description">
+      <p>Plan the app, understand users, design screens, organize data, and begin with Dart fundamentals.</p>
+    </div>
+  </div>
+  <div class="lesson-grid">
+<article class="lesson-card" data-term="P" data-search="prelim session 1 app mindset develop the mindset and workflow used when creating useful applications." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 1</span>
+    <button class="completion-button" type="button" data-completion="P-1.html" aria-label="Mark App Mindset as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">01</div>
+  <h3>App Mindset</h3>
+  <p>Develop the mindset and workflow used when creating useful applications.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-1.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 2 requirements &amp; user flow turn a problem into clear requirements and a logical user flow." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 2</span>
+    <button class="completion-button" type="button" data-completion="P-2.html" aria-label="Mark Requirements &amp; User Flow as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">02</div>
+  <h3>Requirements &amp; User Flow</h3>
+  <p>Turn a problem into clear requirements and a logical user flow.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-2.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 3 ui/ux basics apply essential ui and ux principles to student app projects." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 3</span>
+    <button class="completion-button" type="button" data-completion="P-3.html" aria-label="Mark UI/UX Basics as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">03</div>
+  <h3>UI/UX Basics</h3>
+  <p>Apply essential UI and UX principles to student app projects.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-3.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 4 wireframing app screens plan application screens through practical wireframes before building." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 4</span>
+    <button class="completion-button" type="button" data-completion="P-4.html" aria-label="Mark Wireframing App Screens as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">04</div>
+  <h3>Wireframing App Screens</h3>
+  <p>Plan application screens through practical wireframes before building.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-4.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 5 screen patterns &amp; navigation recognize common screen patterns and organize navigation correctly." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 5</span>
+    <button class="completion-button" type="button" data-completion="P-5.html" aria-label="Mark Screen Patterns &amp; Navigation as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">05</div>
+  <h3>Screen Patterns &amp; Navigation</h3>
+  <p>Recognize common screen patterns and organize navigation correctly.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-5.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 6 data planning basics identify the data an application needs and how records relate." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 6</span>
+    <button class="completion-button" type="button" data-completion="P-6.html" aria-label="Mark Data Planning Basics as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">06</div>
+  <h3>Data Planning Basics</h3>
+  <p>Identify the data an application needs and how records relate.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-6.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 7 dart basics for custom functions learn basic dart concepts used in flutterflow custom functions." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 7</span>
+    <button class="completion-button" type="button" data-completion="P-7.html" aria-label="Mark Dart Basics for Custom Functions as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">07</div>
+  <h3>Dart Basics for Custom Functions</h3>
+  <p>Learn basic Dart concepts used in FlutterFlow custom functions.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-7.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="P" data-search="prelim session 8 prelim review review and consolidate the complete prelim coverage." style="--term-accent:#a855f7">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 8</span>
+    <button class="completion-button" type="button" data-completion="P-8.html" aria-label="Mark Prelim Review as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">08</div>
+  <h3>Prelim Review</h3>
+  <p>Review and consolidate the complete Prelim coverage.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="P-8.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article></div>
+</section>
+<section class="term-section" id="term-m" data-section-term="M" style="--term-accent:#06b6d4">
+  <div class="section-heading">
+    <div>
+      <h2>MIDTERM</h2>
+    </div>
+    <div class="section-description">
+      <p>Explore FlutterFlow, build interfaces and navigation, then connect the application to Supabase.</p>
+    </div>
+  </div>
+  <div class="lesson-grid">
+<article class="lesson-card" data-term="M" data-search="midterm session 9 flutterflow workspace tour navigate the flutterflow workspace, panels, pages, and builder tools." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 9</span>
+    <button class="completion-button" type="button" data-completion="M-1.html" aria-label="Mark FlutterFlow Workspace Tour as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">01</div>
+  <h3>FlutterFlow Workspace Tour</h3>
+  <p>Navigate the FlutterFlow workspace, panels, pages, and builder tools.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-1.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 10 building static screens create well-structured static screens using flutterflow widgets." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 10</span>
+    <button class="completion-button" type="button" data-completion="M-2.html" aria-label="Mark Building Static Screens as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">02</div>
+  <h3>Building Static Screens</h3>
+  <p>Create well-structured static screens using FlutterFlow widgets.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-2.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 11 components, styling &amp; consistency build reusable components and maintain consistent visual styling." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 11</span>
+    <button class="completion-button" type="button" data-completion="M-3.html" aria-label="Mark Components, Styling &amp; Consistency as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">03</div>
+  <h3>Components, Styling &amp; Consistency</h3>
+  <p>Build reusable components and maintain consistent visual styling.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-3.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 12 navigation &amp; app flow connect pages and actions to create a smooth application flow." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 12</span>
+    <button class="completion-button" type="button" data-completion="M-4.html" aria-label="Mark Navigation &amp; App Flow as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">04</div>
+  <h3>Navigation &amp; App Flow</h3>
+  <p>Connect pages and actions to create a smooth application flow.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-4.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 13 supabase setup create and configure a supabase project for the class application." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 13</span>
+    <button class="completion-button" type="button" data-completion="M-5.html" aria-label="Mark Supabase Setup as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">05</div>
+  <h3>Supabase Setup</h3>
+  <p>Create and configure a Supabase project for the class application.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-5.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 14 database tables in supabase design database tables, fields, keys, and relationships in supabase." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 14</span>
+    <button class="completion-button" type="button" data-completion="M-6.html" aria-label="Mark Database Tables in Supabase as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">06</div>
+  <h3>Database Tables in Supabase</h3>
+  <p>Design database tables, fields, keys, and relationships in Supabase.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-6.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 15 connecting flutterflow to supabase connect flutterflow securely to a supabase backend." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 15</span>
+    <button class="completion-button" type="button" data-completion="M-7.html" aria-label="Mark Connecting FlutterFlow to Supabase as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">07</div>
+  <h3>Connecting FlutterFlow to Supabase</h3>
+  <p>Connect FlutterFlow securely to a Supabase backend.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-7.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 16 insert data from a form use forms and actions to insert new records into the database." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 16</span>
+    <button class="completion-button" type="button" data-completion="M-8.html" aria-label="Mark Insert Data from a Form as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">08</div>
+  <h3>Insert Data from a Form</h3>
+  <p>Use forms and actions to insert new records into the database.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-8.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 17 read &amp; display records query, display, and organize database records inside the interface." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 17</span>
+    <button class="completion-button" type="button" data-completion="M-9.html" aria-label="Mark Read &amp; Display Records as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">09</div>
+  <h3>Read &amp; Display Records</h3>
+  <p>Query, display, and organize database records inside the interface.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-9.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="M" data-search="midterm session 18 midterm review review and consolidate the complete midterm coverage." style="--term-accent:#06b6d4">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 18</span>
+    <button class="completion-button" type="button" data-completion="M-10.html" aria-label="Mark Midterm Review as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">10</div>
+  <h3>Midterm Review</h3>
+  <p>Review and consolidate the complete Midterm coverage.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="M-10.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article></div>
+</section>
+<section class="term-section" id="term-semi-final" data-section-term="SF" style="--term-accent:#8b5cf6">
+  <div class="section-heading">
+    <div>
+      <h2>SEMI FINAL</h2>
+    </div>
+    <div class="section-description">
+      <p>Implement authentication, data ownership, CRUD, roles, security, uploads, dashboards, and enhancements.</p>
+    </div>
+  </div>
+  <div class="lesson-grid">
+<article class="lesson-card" data-term="SF" data-search="semi final session 19 authentication concepts understand login, identity, sessions, and authentication workflows." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 19</span>
+    <button class="completion-button" type="button" data-completion="SF-1.html" aria-label="Mark Authentication Concepts as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">01</div>
+  <h3>Authentication Concepts</h3>
+  <p>Understand login, identity, sessions, and authentication workflows.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-1.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 20 supabase auth in flutterflow implement supabase email authentication within flutterflow." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 20</span>
+    <button class="completion-button" type="button" data-completion="SF-2.html" aria-label="Mark Supabase Auth in FlutterFlow as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">02</div>
+  <h3>Supabase Auth in FlutterFlow</h3>
+  <p>Implement Supabase email authentication within FlutterFlow.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-2.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 21 data ownership associate records with users and display only the correct data." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 21</span>
+    <button class="completion-button" type="button" data-completion="SF-3.html" aria-label="Mark Data Ownership as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">03</div>
+  <h3>Data Ownership</h3>
+  <p>Associate records with users and display only the correct data.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-3.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 22 update &amp; delete records allow users to safely edit and remove existing records." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 22</span>
+    <button class="completion-button" type="button" data-completion="SF-4.html" aria-label="Mark Update &amp; Delete Records as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">04</div>
+  <h3>Update &amp; Delete Records</h3>
+  <p>Allow users to safely edit and remove existing records.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-4.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 23 role-based app behavior create different application behavior based on assigned user roles." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 23</span>
+    <button class="completion-button" type="button" data-completion="SF-5.html" aria-label="Mark Role-Based App Behavior as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">05</div>
+  <h3>Role-Based App Behavior</h3>
+  <p>Create different application behavior based on assigned user roles.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-5.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 24 security &amp; row level security protect database records using supabase row level security policies." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 24</span>
+    <button class="completion-button" type="button" data-completion="SF-6.html" aria-label="Mark Security &amp; Row Level Security as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">06</div>
+  <h3>Security &amp; Row Level Security</h3>
+  <p>Protect database records using Supabase Row Level Security policies.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-6.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 25 file and image upload upload, store, retrieve, and display files and images." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 25</span>
+    <button class="completion-button" type="button" data-completion="SF-7.html" aria-label="Mark File and Image Upload as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">07</div>
+  <h3>File and Image Upload</h3>
+  <p>Upload, store, retrieve, and display files and images.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-7.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 26 dashboard &amp; simple analytics summarize records through dashboard cards and simple analytics." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 26</span>
+    <button class="completion-button" type="button" data-completion="SF-8.html" aria-label="Mark Dashboard &amp; Simple Analytics as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">08</div>
+  <h3>Dashboard &amp; Simple Analytics</h3>
+  <p>Summarize records through dashboard cards and simple analytics.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-8.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 27 emerging technology enhancement select an emerging technology feature that improves the application." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 27</span>
+    <button class="completion-button" type="button" data-completion="SF-9.html" aria-label="Mark Emerging Technology Enhancement as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">09</div>
+  <h3>Emerging Technology Enhancement</h3>
+  <p>Select an emerging technology feature that improves the application.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-9.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="SF" data-search="semi final session 28 building an enhancement feature plan and build a meaningful enhancement feature for the project." style="--term-accent:#8b5cf6">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 28</span>
+    <button class="completion-button" type="button" data-completion="SF-10.html" aria-label="Mark Building an Enhancement Feature as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">10</div>
+  <h3>Building an Enhancement Feature</h3>
+  <p>Plan and build a meaningful enhancement feature for the project.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="SF-10.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article></div>
+</section>
+<section class="term-section" id="term-f" data-section-term="F" style="--term-accent:#ec4899">
+  <div class="section-heading">
+    <div>
+      <h2>FINAL</h2>
+    </div>
+    <div class="section-description">
+      <p>Polish the user experience, prepare the web release, and complete an independent final application.</p>
+    </div>
+  </div>
+  <div class="lesson-grid">
+<article class="lesson-card" data-term="F" data-search="final session 30 ui/ux polish &amp; animations improve consistency, responsiveness, accessibility, and animations." style="--term-accent:#ec4899">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 30</span>
+    <button class="completion-button" type="button" data-completion="F-1.html" aria-label="Mark UI/UX Polish &amp; Animations as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">01</div>
+  <h3>UI/UX Polish &amp; Animations</h3>
+  <p>Improve consistency, responsiveness, accessibility, and animations.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="F-1.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="F" data-search="final session 31 deployment preparation test, configure, publish, and verify the application on the web." style="--term-accent:#ec4899">
+  <div class="lesson-topline">
+    <span class="lesson-session">Session 31</span>
+    <button class="completion-button" type="button" data-completion="F-2.html" aria-label="Mark Deployment Preparation as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">02</div>
+  <h3>Deployment Preparation</h3>
+  <p>Test, configure, publish, and verify the application on the web.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="F-2.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+<article class="lesson-card" data-term="F" data-search="final final project finals project: independent web app complete and present an independent web application as the final project." style="--term-accent:#ec4899">
+  <div class="lesson-topline">
+    <span class="lesson-session">Final Project</span>
+    <button class="completion-button" type="button" data-completion="F-3.html" aria-label="Mark Finals Project: Independent Web App as completed" title="Mark as completed">
+      <span class="check-icon" aria-hidden="true">✓</span><span class="completion-label">Mark done</span>
+    </button>
+  </div>
+  <div class="lesson-index">03</div>
+  <h3>Finals Project: Independent Web App</h3>
+  <p>Complete and present an independent web application as the final project.</p>
+  <div class="lesson-footer">
+    <a class="open-button" href="F-3.html">Open lesson <span aria-hidden="true">↗</span></a>
+  </div>
+</article></div>
+</section>
+    <div class="empty-state" id="emptyState"><strong>No matching materials found.</strong>Try another keyword or choose a different term.</div>
+  </main>
+
+  <footer class="site-footer">
+    <div><span class="footer-brand">CC 106 Learning Hub</span><br>Application Development &amp; Emerging Technologies</div>
+    <a class="back-top" href="#top">Back to top ↑</a>
+  </footer>
+
+  <script>
+    (() => {
+      const cards = [...document.querySelectorAll('.lesson-card')];
+      const sections = [...document.querySelectorAll('.term-section')];
+      const search = document.getElementById('materialSearch');
+      const filterButtons = [...document.querySelectorAll('.filter-button')];
+      const resultCount = document.getElementById('resultCount');
+      const completedCount = document.getElementById('completedCount');
+      const emptyState = document.getElementById('emptyState');
+      const storageKey = 'cc106-completed-materials-v1';
+      let activeFilter = 'ALL';
+      let completed = new Set();
+
+      try { completed = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]')); } catch (_) { completed = new Set(); }
+
+      function saveProgress() {
+        try { localStorage.setItem(storageKey, JSON.stringify([...completed])); } catch (_) {}
+      }
+
+      function updateProgressUI() {
+        let availableCompleted = 0;
+        cards.forEach(card => {
+          const button = card.querySelector('[data-completion]');
+          if (!button) return;
+          const file = button.dataset.completion;
+          const isLocked = card.classList.contains('locked');
+          const isDone = !isLocked && completed.has(file);
+          card.classList.toggle('completed', isDone);
+          button.setAttribute('aria-pressed', String(isDone));
+
+          if (isLocked) {
+            button.disabled = true;
+            button.title = 'This lesson is not yet available';
+            button.querySelector('.check-icon').textContent = '🔒';
+            button.querySelector('.completion-label').textContent = 'Locked';
+          } else {
+            button.disabled = false;
+            button.querySelector('.check-icon').textContent = '✓';
+            button.querySelector('.completion-label').textContent = isDone ? 'Completed' : 'Mark done';
+            button.title = isDone ? 'Mark as not completed' : 'Mark as completed';
+            if (isDone) availableCompleted++;
+          }
+        });
+        completedCount.textContent = availableCompleted;
+      }
+
+      function lockLesson(card, file) {
+        if (card.classList.contains('locked')) return;
+        card.classList.add('locked');
+        card.dataset.available = 'false';
+        card.dataset.search += ' locked unavailable not yet available coming soon';
+
+        const link = card.querySelector('.open-button');
+        if (link) {
+          const placeholder = document.createElement('span');
+          placeholder.className = 'locked-button';
+          placeholder.setAttribute('aria-disabled', 'true');
+          placeholder.setAttribute('title', 'This lesson material has not been uploaded yet');
+          placeholder.innerHTML = '<span class="lock-icon" aria-hidden="true">🔒</span> Not yet available';
+          link.replaceWith(placeholder);
+        }
+      }
+
+      async function checkLessonAvailability() {
+        // Browser security blocks reliable file checks when index.html is opened
+        // directly from a computer. Automatic locking runs after deployment.
+        if (location.protocol === 'file:') return;
+
+        await Promise.all(cards.map(async card => {
+          const link = card.querySelector('.open-button');
+          if (!link) return;
+          const file = link.getAttribute('href');
+
+          try {
+            const response = await fetch(file, { method: 'HEAD', cache: 'no-store' });
+            if (response.status === 404 || response.status === 410) lockLesson(card, file);
+          } catch (_) {
+            // Keep the lesson clickable during a temporary network failure.
+          }
+        }));
+
+        updateProgressUI();
+      }
+
+      function applyFilters() {
+        const query = search.value.trim().toLowerCase();
+        let visibleCount = 0;
+        cards.forEach(card => {
+          const termMatch = activeFilter === 'ALL' || card.dataset.term === activeFilter;
+          const searchMatch = !query || card.dataset.search.includes(query);
+          const show = termMatch && searchMatch;
+          card.hidden = !show;
+          if (show) visibleCount++;
+        });
+        sections.forEach(section => {
+          section.hidden = !section.querySelector('.lesson-card:not([hidden])');
+        });
+        emptyState.style.display = visibleCount ? 'none' : 'block';
+        const filterLabel = activeFilter === 'ALL' ? 'all' : filterButtons.find(b => b.dataset.filter === activeFilter).textContent.trim();
+        resultCount.textContent = query
+          ? `Found ${visibleCount} material${visibleCount === 1 ? '' : 's'} for “${search.value.trim()}”`
+          : `Showing ${filterLabel.toLowerCase()} ${visibleCount} material${visibleCount === 1 ? '' : 's'}`;
+      }
+
+      search.addEventListener('input', applyFilters);
+      filterButtons.forEach(button => button.addEventListener('click', () => {
+        activeFilter = button.dataset.filter;
+        filterButtons.forEach(b => b.classList.toggle('active', b === button));
+        applyFilters();
+      }));
+      document.addEventListener('click', event => {
+        const button = event.target.closest('[data-completion]');
+        if (!button || button.disabled) return;
+        const file = button.dataset.completion;
+        completed.has(file) ? completed.delete(file) : completed.add(file);
+        saveProgress();
+        updateProgressUI();
+      });
+
+      updateProgressUI();
+      applyFilters();
+      checkLessonAvailability();
+    })();
+  </script>
+</body>
+</html>

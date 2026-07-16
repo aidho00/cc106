@@ -1,0 +1,281 @@
+[
+  {
+    "prefix": "P",
+    "number": 1,
+    "file": "P-1.html",
+    "key": "P-1",
+    "title": "Session 1: App Mindset",
+    "topic": "App Mindset",
+    "desc": "Develop the mindset and workflow used when creating useful applications."
+  },
+  {
+    "prefix": "P",
+    "number": 2,
+    "file": "P-2.html",
+    "key": "P-2",
+    "title": "Session 2: Requirements & User Flow",
+    "topic": "Requirements & User Flow",
+    "desc": "Turn a problem into clear requirements and a logical user flow."
+  },
+  {
+    "prefix": "P",
+    "number": 3,
+    "file": "P-3.html",
+    "key": "P-3",
+    "title": "Session 3: UI/UX Basics",
+    "topic": "UI/UX Basics",
+    "desc": "Apply essential UI and UX principles to student app projects."
+  },
+  {
+    "prefix": "P",
+    "number": 4,
+    "file": "P-4.html",
+    "key": "P-4",
+    "title": "Session 4: Wireframing App Screens",
+    "topic": "Wireframing App Screens",
+    "desc": "Plan application screens through practical wireframes before building."
+  },
+  {
+    "prefix": "P",
+    "number": 5,
+    "file": "P-5.html",
+    "key": "P-5",
+    "title": "Session 5: Screen Patterns & Navigation",
+    "topic": "Screen Patterns & Navigation",
+    "desc": "Recognize common screen patterns and organize navigation correctly."
+  },
+  {
+    "prefix": "P",
+    "number": 6,
+    "file": "P-6.html",
+    "key": "P-6",
+    "title": "Session 6: Data Planning Basics",
+    "topic": "Data Planning Basics",
+    "desc": "Identify the data an application needs and how records relate."
+  },
+  {
+    "prefix": "P",
+    "number": 7,
+    "file": "P-7.html",
+    "key": "P-7",
+    "title": "Session 7: Dart Basics for Custom Functions",
+    "topic": "Dart Basics for Custom Functions",
+    "desc": "Learn basic Dart concepts used in FlutterFlow custom functions."
+  },
+  {
+    "prefix": "P",
+    "number": 8,
+    "file": "P-8.html",
+    "key": "P-8",
+    "title": "Session 8: Prelim Review",
+    "topic": "Prelim Review",
+    "desc": "Review and consolidate the complete Prelim coverage."
+  },
+  {
+    "prefix": "M",
+    "number": 1,
+    "file": "M-1.html",
+    "key": "M-1",
+    "title": "Session 9: FlutterFlow Workspace Tour",
+    "topic": "FlutterFlow Workspace Tour",
+    "desc": "Navigate the FlutterFlow workspace, panels, pages, and builder tools."
+  },
+  {
+    "prefix": "M",
+    "number": 2,
+    "file": "M-2.html",
+    "key": "M-2",
+    "title": "Session 10: Building Static Screens",
+    "topic": "Building Static Screens",
+    "desc": "Create well-structured static screens using FlutterFlow widgets."
+  },
+  {
+    "prefix": "M",
+    "number": 3,
+    "file": "M-3.html",
+    "key": "M-3",
+    "title": "Session 11: Components, Styling & Consistency",
+    "topic": "Components, Styling & Consistency",
+    "desc": "Build reusable components and maintain consistent visual styling."
+  },
+  {
+    "prefix": "M",
+    "number": 4,
+    "file": "M-4.html",
+    "key": "M-4",
+    "title": "Session 12: Navigation & App Flow",
+    "topic": "Navigation & App Flow",
+    "desc": "Connect pages and actions to create a smooth application flow."
+  },
+  {
+    "prefix": "M",
+    "number": 5,
+    "file": "M-5.html",
+    "key": "M-5",
+    "title": "Session 13: Supabase Setup",
+    "topic": "Supabase Setup",
+    "desc": "Create and configure a Supabase project for the class application."
+  },
+  {
+    "prefix": "M",
+    "number": 6,
+    "file": "M-6.html",
+    "key": "M-6",
+    "title": "Session 14: Database Tables in Supabase",
+    "topic": "Database Tables in Supabase",
+    "desc": "Design database tables, fields, keys, and relationships in Supabase."
+  },
+  {
+    "prefix": "M",
+    "number": 7,
+    "file": "M-7.html",
+    "key": "M-7",
+    "title": "Session 15: Connecting FlutterFlow to Supabase",
+    "topic": "Connecting FlutterFlow to Supabase",
+    "desc": "Connect FlutterFlow securely to a Supabase backend."
+  },
+  {
+    "prefix": "M",
+    "number": 8,
+    "file": "M-8.html",
+    "key": "M-8",
+    "title": "Session 16: Insert Data from a Form",
+    "topic": "Insert Data from a Form",
+    "desc": "Use forms and actions to insert new records into the database."
+  },
+  {
+    "prefix": "M",
+    "number": 9,
+    "file": "M-9.html",
+    "key": "M-9",
+    "title": "Session 17: Read & Display Records",
+    "topic": "Read & Display Records",
+    "desc": "Query, display, and organize database records inside the interface."
+  },
+  {
+    "prefix": "M",
+    "number": 10,
+    "file": "M-10.html",
+    "key": "M-10",
+    "title": "Session 18: Midterm Review",
+    "topic": "Midterm Review",
+    "desc": "Review and consolidate the complete Midterm coverage."
+  },
+  {
+    "prefix": "SF",
+    "number": 1,
+    "file": "SF-1.html",
+    "key": "SF-1",
+    "title": "Session 19: Authentication Concepts",
+    "topic": "Authentication Concepts",
+    "desc": "Understand login, identity, sessions, and authentication workflows."
+  },
+  {
+    "prefix": "SF",
+    "number": 2,
+    "file": "SF-2.html",
+    "key": "SF-2",
+    "title": "Session 20: Supabase Auth in FlutterFlow",
+    "topic": "Supabase Auth in FlutterFlow",
+    "desc": "Implement Supabase email authentication within FlutterFlow."
+  },
+  {
+    "prefix": "SF",
+    "number": 3,
+    "file": "SF-3.html",
+    "key": "SF-3",
+    "title": "Session 21: Data Ownership",
+    "topic": "Data Ownership",
+    "desc": "Associate records with users and display only the correct data."
+  },
+  {
+    "prefix": "SF",
+    "number": 4,
+    "file": "SF-4.html",
+    "key": "SF-4",
+    "title": "Session 22: Update & Delete Records",
+    "topic": "Update & Delete Records",
+    "desc": "Allow users to safely edit and remove existing records."
+  },
+  {
+    "prefix": "SF",
+    "number": 5,
+    "file": "SF-5.html",
+    "key": "SF-5",
+    "title": "Session 23: Role-Based App Behavior",
+    "topic": "Role-Based App Behavior",
+    "desc": "Create different application behavior based on assigned user roles."
+  },
+  {
+    "prefix": "SF",
+    "number": 6,
+    "file": "SF-6.html",
+    "key": "SF-6",
+    "title": "Session 24: Security & Row Level Security",
+    "topic": "Security & Row Level Security",
+    "desc": "Protect database records using Supabase Row Level Security policies."
+  },
+  {
+    "prefix": "SF",
+    "number": 7,
+    "file": "SF-7.html",
+    "key": "SF-7",
+    "title": "Session 25: File and Image Upload",
+    "topic": "File and Image Upload",
+    "desc": "Upload, store, retrieve, and display files and images."
+  },
+  {
+    "prefix": "SF",
+    "number": 8,
+    "file": "SF-8.html",
+    "key": "SF-8",
+    "title": "Session 26: Dashboard & Simple Analytics",
+    "topic": "Dashboard & Simple Analytics",
+    "desc": "Summarize records through dashboard cards and simple analytics."
+  },
+  {
+    "prefix": "SF",
+    "number": 9,
+    "file": "SF-9.html",
+    "key": "SF-9",
+    "title": "Session 27: Emerging Technology Enhancement",
+    "topic": "Emerging Technology Enhancement",
+    "desc": "Select an emerging technology feature that improves the application."
+  },
+  {
+    "prefix": "SF",
+    "number": 10,
+    "file": "SF-10.html",
+    "key": "SF-10",
+    "title": "Session 28: Building an Enhancement Feature",
+    "topic": "Building an Enhancement Feature",
+    "desc": "Plan and build a meaningful enhancement feature for the project."
+  },
+  {
+    "prefix": "F",
+    "number": 1,
+    "file": "F-1.html",
+    "key": "F-1",
+    "title": "Session 30: UI/UX Polish & Animations",
+    "topic": "UI/UX Polish & Animations",
+    "desc": "Improve consistency, responsiveness, accessibility, and animations."
+  },
+  {
+    "prefix": "F",
+    "number": 2,
+    "file": "F-2.html",
+    "key": "F-2",
+    "title": "Session 31: Deployment Preparation",
+    "topic": "Deployment Preparation",
+    "desc": "Test, configure, publish, and verify the application on the web."
+  },
+  {
+    "prefix": "F",
+    "number": 3,
+    "file": "F-3.html",
+    "key": "F-3",
+    "title": "Finals Project: Independent Web App",
+    "topic": "Finals Project: Independent Web App",
+    "desc": "Complete and present an independent web application as the final project."
+  }
+]
