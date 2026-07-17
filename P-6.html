@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- skill:chassis -->
+<style>
+/* =====================================================
+   PRESENTATION CHASSIS — style-invariant base styles
+   Fixed 1920×1080 canvas scaled to fit any viewport.
+   Customize colors, fonts, and chrome via :root tokens.
+   ===================================================== */
+
+/* ---------- Universal reset ---------- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Theme tokens (override in your deck's CSS) ---------- */
+:root {
+    color-scheme: light;
+
+    --background:      #ffffff;
+    --foreground:      #111111;
+    --card:            #f5f5f5;
+    --card-foreground: var(--foreground);
+    --accent:          #c94a3d;
+    --accent-foreground: #ffffff;
+
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --border:           color-mix(in srgb, var(--foreground) 12%, transparent);
+
+    --font-display: Georgia, serif;
+    --font-body: -apple-system, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Reveal animation */
+    --reveal-duration: 0.8s;
+    --reveal-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-distance: 28px;
+
+    /* Chrome (nav dots, keyboard hint) */
+    --nav-dot-size: 9px;
+    --nav-dot-radius: 50%;
+    --nav-dot-color: var(--foreground);
+    --nav-dot-active-color: var(--accent);
+    --nav-dot-opacity: 0.4;
+}
+
+/* ---------- Viewport lock + scroll snap ---------- */
+html, body { height: 100%; overflow-x: hidden; }
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* ---------- Type scale ----------
+   Fixed px sizes on a 1920×1080 canvas. The canvas is scaled to fit
+   any viewport via transform, so these sizes are absolute within the
+   design surface — no responsive units needed. */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 36px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 120px; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -0.01em; }
+h3 { font-size: 44px; line-height: 1.2; }
+.eyebrow {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+ul, ol { padding-left: 48px; display: flex; flex-direction: column; gap: 24px; }
+li::marker { color: var(--accent); }
+
+/* ---------- Slide structure ----------
+   .slide is the authored 1920×1080 artboard.
+   The chassis wraps it in viewport + scale layers at runtime. */
+.slide-viewport {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: block;
+    position: relative;
+    background: var(--background);
+    isolation: isolate;
+    z-index: 1;
+}
+
+.slide-scale {
+    width: 1920px;
+    height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+    transform-origin: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+}
+
+.slide {
+    width: 1920px;
+    height: 1080px;
+    padding: 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    background: transparent;
+}
+
+
+/* ---------- Image defaults ---------- */
+img, .image-container {
+    max-width: 100%;
+    max-height: 540px;
+    object-fit: contain;
+}
+
+/* ---------- Reveal primitives ----------
+   Driven by chassis.js via the Web Animations API, not CSS transitions.
+   Put .reveal* or .step on ANY element — author CSS on the same element
+   (opacity, transform, transition, filter) never conflicts, because
+   WAAPI animations live in the animation cascade origin and win over
+   normal author declarations. The .dN stagger classes below still apply
+   to theme-authored CSS animations via animation-delay.
+
+   Variants: .reveal (fade + up), .reveal-left, .reveal-right,
+   .reveal-scale, .reveal-blur. .step stays hidden until the user
+   advances forward. Don't combine .step with .reveal* on the same
+   element. */
+
+/* FOUC guard: hide reveals until chassis.js marks the document ready. */
+:root:not(.reveals-ready) .reveal,
+:root:not(.reveals-ready) .reveal-left,
+:root:not(.reveals-ready) .reveal-right,
+:root:not(.reveals-ready) .reveal-scale,
+:root:not(.reveals-ready) .reveal-blur,
+:root:not(.reveals-ready) .step {
+    opacity: 0;
+}
+:root:not(.reveals-ready) .reveal-blur { filter: blur(10px); }
+
+/* ---------- Stagger delays (.d1 … .d8) ---------- */
+.slide.visible .d1 { transition-delay: 0.10s; animation-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.25s; animation-delay: 0.25s; }
+.slide.visible .d3 { transition-delay: 0.40s; animation-delay: 0.40s; }
+.slide.visible .d4 { transition-delay: 0.55s; animation-delay: 0.55s; }
+.slide.visible .d5 { transition-delay: 0.70s; animation-delay: 0.70s; }
+.slide.visible .d6 { transition-delay: 0.85s; animation-delay: 0.85s; }
+.slide.visible .d7 { transition-delay: 1.00s; animation-delay: 1.00s; }
+.slide.visible .d8 { transition-delay: 1.15s; animation-delay: 1.15s; }
+
+/* ---------- Nav dots ----------
+   Default: right-center (vertical stack on right edge).
+   Override with <body data-nav="bottom | top-right | hidden">. */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1.5vw, 1.4rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vh, 0.8rem);
+    z-index: 50;
+}
+
+body[data-nav="bottom"] .nav-dots {
+    right: auto;
+    top: auto;
+    bottom: clamp(1rem, 2.5vh, 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+body[data-nav="top-right"] .nav-dots {
+    right: clamp(1rem, 2.5vw, 2rem);
+    top: clamp(1rem, 2.5vh, 2rem);
+    transform: none;
+    flex-direction: row;
+}
+
+body[data-nav="hidden"] .nav-dots { display: none; }
+
+body[data-nav="bottom"] .keyboard-hint {
+    left: clamp(1rem, 2vw, 1.5rem);
+    transform: none;
+}
+
+.nav-dots button {
+    width: var(--nav-dot-size);
+    height: var(--nav-dot-size);
+    border-radius: var(--nav-dot-radius);
+    border: 1.5px solid var(--nav-dot-color);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: var(--nav-dot-opacity);
+}
+.nav-dots button:hover { opacity: 0.85; transform: scale(1.15); }
+.nav-dots button:focus-visible {
+    outline: 2px solid var(--nav-dot-active-color);
+    outline-offset: 3px;
+    opacity: 1;
+}
+.nav-dots button.active {
+    background: var(--nav-dot-active-color);
+    border-color: var(--nav-dot-active-color);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ---------- Keyboard hint ---------- */
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.keyboard-hint kbd {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.9em;
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--background);
+    margin: 0 0.15em;
+}
+
+/* ---------- Credit line ---------- */
+.chassis-credit {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.02em;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.chassis-credit .chassis-credit-emoji {
+    font-style: normal;
+    margin: 0 0.15em;
+}
+
+body[data-nav="bottom"] .chassis-credit {
+    left: auto;
+    right: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ---------- Custom cursor ---------- */
+.chassis-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--accent);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+.chassis-cursor.visible { opacity: 1; }
+body.artifact-editor-editing .chassis-cursor { display: none; }
+
+@media (hover: none) {
+    .chassis-cursor { display: none; }
+}
+
+body.chassis-cursor-active:not(.artifact-editor-editing),
+body.chassis-cursor-active:not(.artifact-editor-editing) * { cursor: none; }
+
+/* ---------- Opt-outs ---------- */
+body[data-no-chrome] .nav-dots,
+body[data-no-chrome] .keyboard-hint,
+body[data-no-chrome] .chassis-credit,
+body[data-no-chrome] .chassis-cursor,
+body[data-no-chrome] .artifact-editor-toggle { display: none; }
+
+:fullscreen .keyboard-hint,
+:fullscreen .chassis-credit,
+:fullscreen .artifact-editor-toggle { display: none; }
+
+@media (hover: none) {
+    .keyboard-hint,
+    .chassis-credit { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 560px) {
+    .nav-dots,
+    .keyboard-hint,
+    .chassis-credit,
+    .chassis-cursor { display: none; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* ---------- Print (PDF export) ---------- */
+@media print {
+    .nav-dots, .keyboard-hint, .chassis-credit, .chassis-cursor { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    html { scroll-snap-type: none; }
+    .slide-viewport {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+    }
+    .slide-scale {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .slide {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+</style>
+<script>
+/* =====================================================
+   PRESENTATION CHASSIS — slide controller
+   Auto-initializes on DOMContentLoaded.
+   Exposes window.slides for programmatic control.
+   ===================================================== */
+(function () {
+    'use strict';
+
+    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+    const STEP_SELECTOR = '.step';
+    const ALL_REVEAL_SELECTOR = REVEAL_SELECTOR + ', ' + STEP_SELECTOR;
+    const VIEWPORT_CLASS = 'slide-viewport';
+    const SCALE_CLASS = 'slide-scale';
+
+    function _detectLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        return (param || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+
+    class SlidePresentation {
+        constructor() {
+            this.slides = Array.from(document.querySelectorAll('.slide'));
+            if (this.slides.length === 0) return;
+
+            // Ensure every slide has an id so hashes + anchor links work.
+            // Author-defined ids are preserved; the rest get slide-N (1-indexed).
+            this.slides.forEach((slide, idx) => {
+                if (!slide.id) slide.id = `slide-${idx + 1}`;
+            });
+            this.viewports = this._setupViewports();
+            this.scales = this.viewports.map((viewport) => viewport.querySelector(`.${SCALE_CLASS}`));
+
+            // Hide every reveal element BEFORE lifting the CSS FOUC guard.
+            // After this, .reveals-ready is on <html>, so CSS no longer hides
+            // reveals — inline styles keep them hidden until JS animates them.
+            this._setupReveals();
+
+            this.navDotsContainer = this._ensureNavDots();
+            this.keyboardHint = this._ensureKeyboardHint();
+            this.credit = this._ensureCredit();
+
+            this._setupCanvasScale();
+            this._setupIntersectionObserver();
+            this._setupKeyboardNav();
+            this._setupWheelNav();
+            this._setupTouchNav();
+            this._setupViewportSync();
+            this._buildNavDots();
+            this._setupHashNav();
+            this._setupCursor();
+            this._setupPrintSettling();
+
+            // If URL has a matching hash, start there; otherwise start at slide 0.
+            const initial = this._slideIndexFromHash(location.hash);
+            this.currentSlide = initial >= 0 ? initial : 0;
+            if (this.currentSlide !== 0) {
+                this._scrollToSlide(this.currentSlide, 'auto');
+            }
+            // Reveal initial slide immediately (observer may miss it on load).
+            const first = this.slides[this.currentSlide];
+            first.classList.add('visible');
+            this._playSlideReveals(first);
+            this._updateNavDots();
+        }
+
+        /* ---------- Viewport scaffolding ----------
+           Authors write .slide as the 1920×1080 artboard. The chassis wraps
+           that authored section in viewport and scale layers. */
+        _setupViewports() {
+            return this.slides.map((slide) => {
+                const existingScale = slide.parentElement?.classList.contains(SCALE_CLASS)
+                    ? slide.parentElement
+                    : null;
+                const existingViewport = existingScale?.parentElement?.classList.contains(VIEWPORT_CLASS)
+                    ? existingScale.parentElement
+                    : null;
+                if (existingViewport) {
+                    this._syncViewportBackground(slide, existingViewport);
+                    return existingViewport;
+                }
+
+                const viewport = document.createElement('div');
+                viewport.className = VIEWPORT_CLASS;
+                const scale = document.createElement('div');
+                scale.className = SCALE_CLASS;
+
+                slide.parentNode.insertBefore(viewport, slide);
+                viewport.appendChild(scale);
+                scale.appendChild(slide);
+                this._syncViewportBackground(slide, viewport);
+
+                return viewport;
+            });
+        }
+
+        _syncViewportBackground(slide, viewport) {
+            const style = getComputedStyle(slide);
+            const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
+            const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
+
+            viewport.style.backgroundColor = hasBackgroundColor ? style.backgroundColor : '';
+            viewport.style.backgroundImage = hasBackgroundImage ? style.backgroundImage : '';
+            viewport.style.backgroundPosition = style.backgroundPosition || 'center center';
+            viewport.style.backgroundRepeat = style.backgroundRepeat || 'no-repeat';
+            viewport.style.backgroundSize = 'cover';
+
+            /* Keep the authored background on the 1920x1080 artboard too.
+               This prevents clipped or transparent edges when the browser
+               viewport does not share the slide's 16:9 ratio. */
+            slide.style.removeProperty('background');
+        }
+
+        /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
+        _ensureNavDots() {
+            let el = document.getElementById('navDots');
+            if (!el) {
+                el = document.createElement('nav');
+                el.id = 'navDots';
+                el.className = 'nav-dots';
+                el.setAttribute('aria-label', 'Slide navigation');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureKeyboardHint() {
+            let el = document.querySelector('.keyboard-hint');
+            if (!el) {
+                const i18n = {
+                    en: { navigate: 'navigate', restart: 'restart', fullscreen: 'fullscreen' },
+                    es: { navigate: 'navegar',   restart: 'inicio',   fullscreen: 'fullscreen' },
+                    fr: { navigate: 'naviguer',  restart: 'début',    fullscreen: 'fullscreen' },
+                    de: { navigate: 'blättern',  restart: 'anfang',   fullscreen: 'vollbild' },
+                    pt: { navigate: 'navegar',   restart: 'início',   fullscreen: 'fullscreen' },
+                    ja: { navigate: '移動',      restart: '先頭',      fullscreen: '全画面' },
+                    ko: { navigate: '이동',      restart: '처음',      fullscreen: '전체화면' },
+                    zh: { navigate: '翻页',      restart: '重置',      fullscreen: '全屏' },
+                    it: { navigate: 'navigare',  restart: 'inizio',   fullscreen: 'fullscreen' },
+                    nl: { navigate: 'bladeren',  restart: 'begin',    fullscreen: 'vollscherm' },
+                };
+                const t = i18n[_detectLang()] || i18n.en;
+                el = document.createElement('div');
+                el.className = 'keyboard-hint';
+                el.innerHTML = `<kbd>←</kbd> <kbd>→</kbd> ${t.navigate} &middot; <kbd>R</kbd> ${t.restart} &middot; <kbd>F</kbd> ${t.fullscreen}`;
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureCredit() {
+            let el = document.querySelector('.chassis-credit');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'chassis-credit';
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML = 'Dave Bryan J. Beatingo';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        /* ---------- Reveal engine ----------
+           Reveals are driven by the Web Animations API instead of CSS
+           transitions. This lets authors put .reveal* / .step on any
+           element: animation values live in the animation cascade origin
+           and win over normal author declarations, so no wrapper element
+           is required to isolate the chassis from author CSS.
+
+           State per slide:
+           - "hidden":  inline opacity/transform/filter from the 'from'
+                        keyframe of the variant. Set on init and on
+                        forward re-entry.
+           - "played":  animation is running or has run; the class
+                        `reveals-played` on the slide makes playback
+                        idempotent so observer re-fires (resize,
+                        fullscreen) don't restart the animation.
+           - "settled": animation canceled, inline styles cleared. Used
+                        for backward entries (we skip the animation and
+                        show the final state instantly) and for print. */
+
+        _setupReveals() {
+            // Lift the CSS FOUC guard first so getComputedStyle reads each
+            // element's natural opacity, not the guard's blanket opacity: 0.
+            // No paint occurs mid-task — inline hidden styles are applied
+            // before the browser yields, so there is no visible flash.
+            document.documentElement.classList.add('reveals-ready');
+            this.slides.forEach((slide) => {
+                slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                    el._targetOpacity = parseFloat(getComputedStyle(el).opacity);
+                    this._applyHiddenStyle(el);
+                });
+            });
+        }
+
+        _setupPrintSettling() {
+            // Browsers snapshot the document for print/PDF export. WAAPI
+            // animations don't necessarily complete in that snapshot, so
+            // settle every slide to its final state first. After printing,
+            // reset — but only for slides that haven't already been viewed,
+            // so the audience experience picks up where it left off.
+            window.addEventListener('beforeprint', () => {
+                this.slides.forEach((slide) => this._settleSlide(slide));
+            });
+        }
+
+        _readTokens() {
+            const cs = getComputedStyle(document.documentElement);
+            const rawDuration = parseFloat(cs.getPropertyValue('--reveal-duration'));
+            const duration = Number.isFinite(rawDuration) ? rawDuration * 1000 : 800;
+            const ease = cs.getPropertyValue('--reveal-ease').trim() || 'cubic-bezier(0.16, 1, 0.3, 1)';
+            const distance = cs.getPropertyValue('--reveal-distance').trim() || '28px';
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            return {
+                duration: reducedMotion ? 1 : duration,
+                ease,
+                distance,
+            };
+        }
+
+        _getRevealDelay(el) {
+            // Use getAttribute('class') rather than el.className: on SVG
+            // elements, `.className` is an SVGAnimatedString (not a string)
+            // and calling .match on it throws. getAttribute is uniform
+            // across HTML and SVG.
+            const classes = el.getAttribute('class') || '';
+            const m = classes.match(/\bd([1-8])\b/);
+            if (!m) return 0;
+            // Matches CSS .dN: d1 = 100ms, d2 = 250ms, +150ms per step.
+            return 100 + (parseInt(m[1], 10) - 1) * 150;
+        }
+
+        _getRevealKeyframes(el, distance) {
+            const to = el._targetOpacity ?? 1;
+            if (el.classList.contains('reveal-left')) {
+                return [
+                    { opacity: 0, transform: `translateX(calc(-1 * ${distance}))` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-right')) {
+                return [
+                    { opacity: 0, transform: `translateX(${distance})` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-scale')) {
+                return [
+                    { opacity: 0, transform: 'scale(0.88)' },
+                    { opacity: to, transform: 'scale(1)' },
+                ];
+            }
+            if (el.classList.contains('reveal-blur')) {
+                return [
+                    { opacity: 0, filter: 'blur(10px)' },
+                    { opacity: to, filter: 'blur(0)' },
+                ];
+            }
+            // Default: .reveal or .step (slide up + fade)
+            return [
+                { opacity: 0, transform: `translateY(${distance})` },
+                { opacity: to, transform: 'translateY(0)' },
+            ];
+        }
+
+        _applyHiddenStyle(el) {
+            const { distance } = this._readTokens();
+            const from = this._getRevealKeyframes(el, distance)[0];
+            if ('opacity' in from) el.style.opacity = from.opacity;
+            if ('transform' in from) el.style.transform = from.transform;
+            if ('filter' in from) el.style.filter = from.filter;
+        }
+
+        _clearHiddenStyle(el) {
+            el.style.opacity = '';
+            el.style.transform = '';
+            el.style.filter = '';
+        }
+
+        _cancelReveal(el) {
+            if (el._revealAnim) {
+                el._revealAnim.cancel();
+                el._revealAnim = null;
+            }
+        }
+
+        _playReveal(el, delayOverride) {
+            this._cancelReveal(el);
+            const { duration, ease, distance } = this._readTokens();
+            const delay = typeof delayOverride === 'number' ? delayOverride : this._getRevealDelay(el);
+            const keyframes = this._getRevealKeyframes(el, distance);
+            // fill: 'backwards' applies the 'from' keyframe during the
+            // stagger delay so the element stays hidden until its turn,
+            // without pinning the 'to' keyframe after the animation ends.
+            // This lets co-existing author CSS (e.g. a `.pulse` CSS
+            // animation on the same element) take over naturally once the
+            // entrance completes — otherwise our fill would mask anything
+            // the author wanted to happen post-reveal.
+            const anim = el.animate(keyframes, {
+                duration,
+                delay,
+                easing: ease,
+                fill: 'backwards',
+            });
+            el._revealAnim = anim;
+            // Safe to clear inline 'from' styles now — the animation's
+            // backwards-fill holds the element at the 'from' keyframe for
+            // the duration of any stagger delay.
+            this._clearHiddenStyle(el);
+        }
+
+        _playSlideReveals(slide) {
+            if (slide.classList.contains('reveals-played')) return;
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => this._playReveal(el));
+            // .step elements stay hidden until the user advances.
+        }
+
+        _resetSlideReveals(slide) {
+            // Forward re-entry: cancel in-flight animations, re-hide
+            // everything, and reset step state so the slide replays cleanly
+            // when the observer next adds .visible.
+            slide.classList.remove('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step.step-shown').forEach((el) => el.classList.remove('step-shown'));
+        }
+
+        _settleSlide(slide) {
+            // Print / PDF export: jump to the final state with everything
+            // shown, so every step appears in the exported document.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => el.classList.add('step-shown'));
+        }
+
+        _rewindSlide(slide) {
+            // Backward re-entry: show reveals instantly (no replay — the
+            // viewer already saw the intro) but hide every step, so the
+            // slide is positioned at the start of its stepped content and
+            // can be stepped through again.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => {
+                el.classList.remove('step-shown');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+        }
+
+        /* ---------- Navigation ----------
+           goTo scrolls to the target. Both forward-replay and backward-
+           rewind need to mutate the target BEFORE scrolling — while it's
+           still offscreen — so the viewer never sees the old state flash
+           into view. Resetting after the slide is in view causes a visible
+           "show then hide" blink; the IntersectionObserver fires too late
+           (80% threshold) to catch it. */
+        goTo(index) {
+            const clamped = Math.max(0, Math.min(this.slides.length - 1, index));
+            if (clamped === this.currentSlide) return;
+
+            const target = this.slides[clamped];
+            const goingForward = clamped > this.currentSlide;
+
+            if (target.classList.contains('visible')) {
+                if (goingForward) {
+                    // Forward replay: full reset so the observer can play reveals fresh.
+                    target.classList.remove('visible');
+                    this._resetSlideReveals(target);
+                } else {
+                    // Backward rewind: hide any shown steps so the slide
+                    // scrolls back in at the start of its stepped content.
+                    this._rewindSlide(target);
+                }
+            }
+
+            this._scrollToSlide(clamped, 'smooth');
+        }
+
+        _scrollToSlide(index, behavior) {
+            this.viewports[index]?.scrollIntoView({ behavior, block: 'start' });
+        }
+
+        _slideIndexFromHash(hash) {
+            if (!hash) return -1;
+            return this.slides.findIndex((s) => '#' + s.id === hash);
+        }
+
+        _syncHash() {
+            const slide = this.slides[this.currentSlide];
+            if (!slide || !slide.id) return;
+            const newHash = '#' + slide.id;
+            if (location.hash !== newHash) {
+                // replaceState — keeps the URL in sync without polluting history,
+                // so the browser back button exits the deck instead of stepping through slides.
+                try {
+                    history.replaceState(null, '', newHash);
+                } catch {
+                    // Sandboxed iframes (opaque origin, about:srcdoc) reject URL
+                    // mutation with a SecurityError. Hash sync is a nicety — an
+                    // unguarded throw here kills the observer callback before it
+                    // marks the slide visible and plays its reveals.
+                }
+            }
+        }
+
+        _setupHashNav() {
+            // React to external hash changes (anchor link clicks, back/forward if user uses pushState manually)
+            window.addEventListener('hashchange', () => {
+                const idx = this._slideIndexFromHash(location.hash);
+                if (idx >= 0 && idx !== this.currentSlide) this.goTo(idx);
+            });
+        }
+
+        /* ---------- Custom cursor ----------
+           Accent disc that follows the pointer, hidden after idle. */
+        _setupCursor() {
+            if (!matchMedia('(hover: hover)').matches) return;
+
+            const cursor = document.createElement('div');
+            cursor.className = 'chassis-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+            document.body.classList.add('chassis-cursor-active');
+
+            const half = 16;  // matches width/height / 2 in CSS
+            const IDLE_MS = 2500;
+            let idleTimer = null;
+
+            const show = () => {
+                cursor.classList.add('visible');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    cursor.classList.remove('visible');
+                }, IDLE_MS);
+            };
+            const hide = () => {
+                clearTimeout(idleTimer);
+                cursor.classList.remove('visible');
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate3d(${e.clientX - half}px, ${e.clientY - half}px, 0)`;
+                show();
+            });
+            document.addEventListener('mouseleave', hide);
+            document.addEventListener('mouseenter', show);
+        }
+
+        /* ---------- Fullscreen ---------- */
+        toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.();
+            }
+        }
+
+        next() { this.goTo(this.currentSlide + 1); }
+        prev() { this.goTo(this.currentSlide - 1); }
+        first() { this.goTo(0); }
+        last() { this.goTo(this.slides.length - 1); }
+
+        /* ---------- Step-aware advance / retreat ----------
+           advance() reveals the next .step on the current slide (if any),
+           otherwise advances to the next slide. retreat() hides the last
+           revealed step, otherwise goes back to the previous slide. */
+        advance() {
+            const current = this.slides[this.currentSlide];
+            const nextStep = current?.querySelector('.step:not(.step-shown)');
+            if (nextStep) {
+                nextStep.classList.add('step-shown');
+                // No stagger on click-reveal — the user's gesture is the trigger.
+                this._playReveal(nextStep, 0);
+                return;
+            }
+            this.next();
+        }
+        retreat() {
+            const current = this.slides[this.currentSlide];
+            const shown = current?.querySelectorAll('.step.step-shown');
+            if (shown && shown.length > 0) {
+                const last = shown[shown.length - 1];
+                last.classList.remove('step-shown');
+                this._cancelReveal(last);
+                this._applyHiddenStyle(last);
+                return;
+            }
+            this.prev();
+        }
+
+        /* ---------- Intersection observer ----------
+           Fire late (>= 80% in view) so reveals play on a settled slide.
+           This is the single source of truth for active-slide state.
+
+           Forward:  add .visible, play reveals. (goTo() has already reset
+                     the target to pre-reveal state if this is a re-visit,
+                     so the animation is fresh either way.)
+           Backward: add .visible, rewind to the start of the stepped
+                     content — reveals are shown instantly (no replay) and
+                     every step is hidden again so the viewer can step
+                     through it fresh. */
+        _setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const idx = this.viewports.indexOf(entry.target);
+                    if (idx < 0) return;
+                    const slide = this.slides[idx];
+
+                    if (idx === this.currentSlide) {
+                        // Same-slide re-fire (initial load, resize, fullscreen).
+                        if (!slide.classList.contains('visible')) {
+                            slide.classList.add('visible');
+                        }
+                        // Idempotent: only plays if not already marked played.
+                        this._playSlideReveals(slide);
+                        return;
+                    }
+
+                    const goingForward = idx > this.currentSlide;
+                    this.currentSlide = idx;
+                    this._updateNavDots();
+                    this._syncHash();
+
+                    slide.classList.add('visible');
+                    if (goingForward) {
+                        this._playSlideReveals(slide);
+                    } else {
+                        this._rewindSlide(slide);
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            this.viewports.forEach((viewport) => observer.observe(viewport));
+        }
+
+        /* ---------- Keyboard ---------- */
+        _setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                // Skip when user is editing text
+                if (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+                switch (e.key) {
+                    // Step-aware: consume steps first, then advance slides
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault(); this.advance(); break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault(); this.retreat(); break;
+                    // Slide-level: always skip past steps
+                    case 'PageDown':
+                        e.preventDefault(); this.next(); break;
+                    case 'PageUp':
+                        e.preventDefault(); this.prev(); break;
+                    case 'Home':
+                        e.preventDefault(); this.first(); break;
+                    case 'End':
+                        e.preventDefault(); this.last(); break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault(); this.toggleFullscreen(); break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault(); this.first(); break;
+                }
+            });
+        }
+
+        /* ---------- Wheel / trackpad ----------
+           ALWAYS preventDefault — letting any native wheel scroll through
+           races against scrollIntoView + mandatory snap, and blocks macOS
+           two-finger horizontal swipes from triggering browser back/forward.
+           Whichever axis has the larger magnitude wins, so vertical scroll
+           and horizontal trackpad swipes both drive advance/retreat. Lock
+           briefly after a gesture so trackpad inertia (continuous small
+           deltas) can't spam next(). */
+        _setupWheelNav() {
+            let locked = false;
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) return;                // preserve browser pinch-zoom (ctrl+wheel)
+                e.preventDefault();                   // block native scroll + horizontal back-swipe
+                if (locked) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (Math.abs(delta) < 20) return;     // ignore tiny flicks
+                locked = true;
+                if (delta > 0) this.advance(); else this.retreat();
+                setTimeout(() => { locked = false; }, 500);
+            }, { passive: false });
+        }
+
+        /* ---------- Touch / swipe ----------
+           Horizontal swipes advance / retreat slides; left = next, right =
+           prev (matches stories / carousel conventions). Dominantly
+           vertical swipes fall through to native scroll-snap so the
+           existing top/bottom behavior keeps working. A time budget
+           rejects slow pans that were really aborted scrolls. */
+        _setupTouchNav() {
+            const MIN_DISTANCE = 50;     // px — below this is a tap or jitter
+            const MAX_TIME = 600;        // ms — slower than this is a pan, not a swipe
+            const DOMINANCE = 1.2;       // horizontal must beat vertical by this factor
+
+            let startX = 0, startY = 0, startTime = 0;
+            let tracking = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('artifact-editor-editing')) { tracking = false; return; }
+                if (e.touches.length !== 1) { tracking = false; return; }
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                startTime = performance.now();
+                tracking = true;
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const ax = Math.abs(dx), ay = Math.abs(dy);
+                if (ax < MIN_DISTANCE) return;
+                if (ax < ay * DOMINANCE) return;
+                if (performance.now() - startTime > MAX_TIME) return;
+                if (dx < 0) this.advance(); else this.retreat();
+            }, { passive: true });
+
+            window.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+        }
+
+        /* ---------- Canvas scaling ----------
+           Each scaler holds a fixed 1920×1080 slide. Compute the
+           scale factor that fits it inside the viewport and apply via
+           CSS custom property. Runs on init, resize, and fullscreen. */
+        _setupCanvasScale() {
+            const CANVAS_W = 1920;
+            const CANVAS_H = 1080;
+            const scales = this.scales;
+
+            const update = () => {
+                const mobileReadingMode = window.matchMedia(
+                    '(max-width: 768px) and (orientation: portrait)'
+                ).matches;
+
+                /* Portrait phones use a readable minimum scale and allow
+                   horizontal panning. Landscape/desktop keeps fit-to-screen. */
+                const scale = mobileReadingMode
+                    ? Math.max(window.innerWidth / CANVAS_W, 0.46)
+                    : Math.min(
+                        window.innerWidth / CANVAS_W,
+                        window.innerHeight / CANVAS_H
+                    );
+
+                document.documentElement.classList.toggle(
+                    'mobile-reading-mode',
+                    mobileReadingMode
+                );
+
+                scales.forEach((el) => {
+                    if (!el) return;
+                    el.style.setProperty('--slide-scale', scale);
+                    el.style.setProperty('--scaled-width', `${CANVAS_W * scale}px`);
+                    el.style.setProperty('--scaled-height', `${CANVAS_H * scale}px`);
+                });
+            };
+
+            update();
+            window.addEventListener('resize', update);
+            document.addEventListener('fullscreenchange', () => {
+                requestAnimationFrame(update);
+            });
+        }
+
+        /* ---------- Viewport sync ----------
+           Resize / fullscreenchange → realign current slide. Each slide is
+           100vh, so a viewport height change leaves the existing scroll
+           position out of alignment with the slide top; scroll-snap doesn't
+           re-snap on its own. */
+        _setupViewportSync() {
+            const realign = () => {
+                requestAnimationFrame(() => {
+                    this._scrollToSlide(this.currentSlide, 'auto');
+                });
+            };
+            window.addEventListener('resize', realign);
+            document.addEventListener('fullscreenchange', realign);
+        }
+
+        /* ---------- Nav dots ---------- */
+        _buildNavDots() {
+            // Clear first — prevents duplicates when DOM is re-serialized/re-opened
+            this.navDotsContainer.innerHTML = '';
+            this.slides.forEach((slide, idx) => {
+                const dot = document.createElement('button');
+                dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+                if (idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.goTo(idx));
+                this.navDotsContainer.appendChild(dot);
+            });
+        }
+
+        _updateNavDots() {
+            const dots = this.navDotsContainer.querySelectorAll('button');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === this.currentSlide);
+            });
+        }
+    }
+
+    /* ---------- Auto-init ---------- */
+    function init() {
+        // Each slide canvas is its own editable host for the inline editor.
+        document.querySelectorAll('.slide').forEach(function (el) {
+            el.classList.add('artifact-editable');
+        });
+        window.slides = new SlidePresentation();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chassis -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+    <title>Session 6: Data Planning Basics | Student Edition</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+    <style>
+      :root{--background:#0d0a1a;--foreground:#f0eef6;--accent:#a855f7;--accent-secondary:#06b6d4;--card:#1e1536;--card-foreground:#f0eef6;--muted-foreground:rgba(240,238,246,0.6);--border:rgba(168,85,247,0.2);--font-display:'Archivo Black',sans-serif;--font-body:'Space Grotesk',sans-serif;--gradient-1:linear-gradient(135deg,#0d0a1a 0%,#1a0e2e 50%,#0d0a1a 100%);--gradient-2:linear-gradient(135deg,#1a0e2e 0%,#2d1b4e 50%,#1a0e2e 100%);--gradient-card:linear-gradient(135deg,#2d1b69 0%,#1e1145 100%);--nav-dot-color:rgba(168,85,247,0.4);--nav-dot-active-color:#a855f7;}
+      *{box-sizing:border-box;margin:0;padding:0;}body{background:var(--background);color:var(--foreground);}
+      h1,h2,h3{font-family:var(--font-display);letter-spacing:-0.02em;line-height:1.1;}
+      p,li,span,td,th{font-family:var(--font-body);}
+      .slide{background:var(--gradient-1);padding:80px;display:flex;flex-direction:column;justify-content:center;}
+      .section-number{font-family:var(--font-display);font-size:180px;color:rgba(168,85,247,0.08);position:absolute;top:40px;right:80px;line-height:1;}
+      .eyebrow{font-family:var(--font-body);font-size:22px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:20px;}
+      h1{font-size:120px;}h2{font-size:64px;margin-bottom:30px;}h3{font-size:44px;margin-bottom:20px;}
+      p{font-size:28px;line-height:1.5;color:var(--muted-foreground);max-width:900px;}
+      li{font-size:28px;line-height:1.6;color:var(--muted-foreground);margin-bottom:12px;margin-left:30px;}
+      .purple-card{background:var(--gradient-card);border:1px solid var(--border);border-radius:20px;padding:40px;margin-top:30px;}
+      .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:30px;}
+      .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:30px;}
+      .grid-card{background:var(--gradient-card);border:1px solid var(--border);border-radius:16px;padding:30px;}
+      .grid-card h3{font-size:28px;margin-bottom:12px;}.grid-card p{font-size:22px;}
+      .highlight{color:var(--accent);}.highlight-cyan{color:var(--accent-secondary);}
+      .qa-banner{background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);border-radius:20px;padding:60px;text-align:center;margin-top:30px;}
+      .qa-banner h2{color:#fff;margin-bottom:16px;}.qa-banner p{color:rgba(255,255,255,0.85);margin:0 auto;}
+      table{width:100%;border-collapse:collapse;margin-top:30px;font-family:var(--font-body);}
+      th{background:rgba(168,85,247,0.15);padding:16px 20px;text-align:left;font-size:22px;font-weight:600;color:var(--accent);border-bottom:2px solid var(--border);}
+      td{padding:14px 20px;font-size:22px;color:var(--muted-foreground);border-bottom:1px solid rgba(168,85,247,0.1);}
+      .activity-card{background:linear-gradient(135deg,#1e3a5f 0%,#0d2137 100%);border:1px solid rgba(6,182,212,0.3);border-radius:20px;padding:40px;margin-top:30px;}
+      .activity-card h3{color:var(--accent-secondary);}
+      .db-table{background:#0f0b1e;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:20px;}
+      .db-table-header{background:rgba(168,85,247,0.2);padding:12px 20px;font-weight:700;font-size:20px;color:var(--accent);}
+      .db-table-row{padding:10px 20px;border-bottom:1px solid rgba(168,85,247,0.1);font-size:18px;color:var(--muted-foreground);display:flex;justify-content:space-between;}
+      .db-table-row span:first-child{color:var(--foreground);font-weight:500;}
+      .teacher-btn{position:fixed;bottom:20px;left:20px;background:rgba(168,85,247,0.9);color:white;border:none;border-radius:50%;width:48px;height:48px;font-size:20px;font-weight:700;cursor:pointer;z-index:9999;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.3s;}
+      .teacher-btn:hover{opacity:1;}
+    </style>
+
+<style data-cc106-session-upgrade>
+  .slide:not([style*="padding-top"]) { padding-top:70px !important; padding-bottom:70px !important; }
+  .slide { gap:0 !important; }
+  .slide::before { content:'Application Development & Emerging Technologies'; position:fixed; top:clamp(.6rem,1.2vh,1rem); right:clamp(1rem,2vw,1.5rem); font-family:var(--font-body); font-size:14px; color:var(--muted-foreground); letter-spacing:.02em; opacity:.7; white-space:nowrap; pointer-events:none; user-select:none; z-index:50; }
+  .cc106-reference-layout { display:grid; grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr); gap:30px; align-items:stretch; margin-top:18px; }
+  .cc106-reference-copy { min-height:560px; display:flex; flex-direction:column; justify-content:center; gap:18px; }
+  .cc106-reference-copy h3 { margin:0; font-size:28px; color:var(--accent); }
+  .cc106-reference-copy ul { margin:0; }
+  .cc106-reference-copy li { font-size:20px; line-height:1.45; margin-bottom:12px; }
+  .cc106-reference-frame { height:560px; display:grid; grid-template-rows:42px minmax(0,1fr) 56px; overflow:hidden; border:1px solid rgba(255,255,255,.16); border-radius:18px; background:#10131b; box-shadow:0 22px 55px rgba(0,0,0,.32); }
+  .cc106-reference-bar { display:flex; align-items:center; gap:12px; padding:0 16px; background:#181c27; border-bottom:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.76); font-size:15px; }
+  .cc106-reference-dots { display:flex; gap:7px; }
+  .cc106-reference-dots i { width:10px; height:10px; display:block; border-radius:50%; background:#fb7185; }
+  .cc106-reference-dots i:nth-child(2) { background:#facc15; }
+  .cc106-reference-dots i:nth-child(3) { background:#4ade80; }
+  .cc106-reference-image { min-height:0; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#f4f5f7; }
+  .cc106-reference-image img { width:100%; height:100%; display:block; object-fit:contain; object-position:center; }
+  .cc106-reference-caption { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:0 16px; color:rgba(255,255,255,.82); font-size:14px; line-height:1.25; background:#181c27; border-top:1px solid rgba(255,255,255,.1); }
+  .cc106-reference-caption span:last-child { flex:0 0 auto; color:var(--accent-secondary,var(--accent)); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+  .cc106-explainer-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-top:28px; }
+  .cc106-explainer-card { min-height:250px; padding:30px; border:1px solid var(--border,rgba(255,255,255,.14)); border-radius:18px; background:var(--gradient-card,var(--card,rgba(255,255,255,.06))); }
+  .cc106-explainer-card h3 { margin:0 0 14px; font-size:26px; color:var(--accent); }
+  .cc106-explainer-card p { font-size:20px; line-height:1.45; }
+  .cc106-flow-chain { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; align-items:stretch; margin-top:30px; }
+  .cc106-flow-step { position:relative; min-height:150px; display:flex; align-items:center; justify-content:center; padding:24px; border:1px solid var(--border,rgba(255,255,255,.14)); border-radius:16px; background:var(--gradient-card,var(--card,rgba(255,255,255,.06))); color:var(--foreground); font-family:var(--font-body); font-size:22px; font-weight:700; text-align:center; }
+  .cc106-flow-step:not(:last-child)::after { content:'→'; position:absolute; right:-20px; top:50%; z-index:2; transform:translateY(-50%); color:var(--accent-secondary,var(--accent)); font-size:30px; }
+  .cc106-compare { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:26px; }
+  .cc106-compare > div { padding:24px 28px; border-radius:16px; background:rgba(255,255,255,.055); }
+  .cc106-compare strong { display:block; margin-bottom:8px; color:var(--accent); font-family:var(--font-body); font-size:20px; text-transform:uppercase; letter-spacing:.08em; }
+  .cc106-compare p { font-size:19px; line-height:1.4; }
+  .mock-phone, .screenshot-frame, .ui-reference, .ui-web-frame, .ui3-browser { box-sizing:border-box; overflow:hidden; }
+  .slide img { max-width:100%; }
+</style>
+<style data-image-lightbox-styles>
+  .slide img[data-lightbox-ready] { cursor:zoom-in; transition:filter .18s ease,transform .18s ease; }
+  .slide img[data-lightbox-ready]:hover { filter:brightness(1.06); }
+  .slide img[data-lightbox-ready]:focus-visible { outline:4px solid var(--accent-secondary,var(--accent)); outline-offset:5px; }
+  body.image-lightbox-open { overflow:hidden !important; }
+  .image-lightbox { position:fixed; inset:0; z-index:2147483647; display:grid; place-items:center; padding:58px 46px 38px; background:rgba(3,5,12,.94); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); opacity:0; visibility:hidden; pointer-events:none; transition:opacity .2s ease,visibility .2s ease; }
+  .image-lightbox.is-open { opacity:1; visibility:visible; pointer-events:auto; }
+  .image-lightbox__figure { width:min(94vw,1800px); height:min(88vh,980px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; margin:0; }
+  .image-lightbox__image { max-width:94vw !important; max-height:80vh !important; width:auto !important; height:auto !important; object-fit:contain !important; border:1px solid rgba(255,255,255,.2); border-radius:14px; background:#0b0e14; box-shadow:0 28px 90px rgba(0,0,0,.65); cursor:zoom-out; }
+  .image-lightbox__caption { max-width:1100px; color:rgba(255,255,255,.85); font:500 17px/1.4 var(--font-body,sans-serif); text-align:center; }
+  .image-lightbox__close { position:fixed; top:18px; right:24px; width:52px; height:52px; display:grid; place-items:center; padding:0; border:1px solid rgba(255,255,255,.25); border-radius:50%; background:rgba(18,22,32,.9); color:#fff; font:300 36px/1 sans-serif; cursor:pointer; }
+  .image-lightbox__close:hover,.image-lightbox__close:focus-visible { background:var(--accent); outline:none; }
+</style>
+
+<style data-student-watermark>
+  .slide::before { content:'Application Development & Emerging Technologies'; position:fixed; top:clamp(.6rem,1.2vh,1rem); right:clamp(1rem,2vw,1.5rem); font-family:var(--font-body); font-size:14px; color:var(--muted-foreground); letter-spacing:.02em; opacity:.7; white-space:nowrap; pointer-events:none; user-select:none; z-index:50; }
+</style>
+
+<style id="cc106-presentation-responsive-fix">
+/* Full-bleed backgrounds and mobile reading support */
+.slide-viewport {
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+}
+.slide {
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+    html {
+        scroll-snap-type: y proximity !important;
+    }
+    body {
+        overscroll-behavior-x: none;
+    }
+    .slide-viewport {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        touch-action: pan-x pan-y pinch-zoom !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--accent) 60%, transparent) transparent;
+    }
+    .slide-viewport::-webkit-scrollbar {
+        display: block;
+        height: 5px;
+    }
+    .slide-viewport::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--accent) 60%, transparent);
+        border-radius: 999px;
+    }
+    .slide-scale {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        width: var(--scaled-width, 883px) !important;
+        height: var(--scaled-height, 497px) !important;
+        margin: max(16px, calc((100dvh - var(--scaled-height, 497px)) / 2)) auto !important;
+        transform: none !important;
+        transform-origin: top left !important;
+    }
+    .slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        transform: scale(var(--slide-scale, 0.46)) !important;
+        transform-origin: top left !important;
+    }
+    .keyboard-hint {
+        display: none !important;
+    }
+}
+</style>
+
+</head>
+<body>
+
+<!-- SLIDE 1 -->
+<section class="slide" style="background:radial-gradient(ellipse at 30% 50%,rgba(168,85,247,0.15) 0%,transparent 60%),var(--gradient-1);justify-content:center;align-items:center;text-align:center;">
+  <h1 class="reveal d2" style="font-size:110px;">Data Planning<br><span class="highlight">Basics</span></h1>
+  <p class="reveal d3" style="font-size:32px;margin-top:30px;">Tables, Fields, Records &amp; Relationships</p>
+  <p class="reveal d4" style="font-size:22px;color:var(--accent);margin-top:20px;">Output: Draft Database Table Plan for Supabase</p>
+<p class="reveal d4" style="font-size:22px;color:var(--accent);margin-top:20px;">Student Edition - expanded lesson explanations</p></section>
+
+<!-- SLIDE 2 -->
+<section class="slide">
+  <span class="section-number">01</span>
+  <span class="eyebrow reveal d1">Recap</span>
+  <h2 class="reveal d2">Last Session</h2>
+  <ul class="reveal d3">
+    <li>5 screen patterns: Login, Home, Form, List, Detail</li>
+    <li>3 navigation types: Tab Bar, Drawer, Stack</li>
+    <li>You built your <strong class="highlight">navigation map</strong></li>
+    <li>All screens organized, connected, and role-based</li>
+  </ul>
+  <p class="reveal d4" style="margin-top:20px;color:var(--accent);">Today: what DATA lives behind those screens.</p>
+</section>
+
+<!-- SLIDE 3: Why Data Planning -->
+<section class="slide" style="background:radial-gradient(ellipse at 60% 40%,rgba(6,182,212,0.08) 0%,transparent 50%),var(--gradient-1);">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Why Plan Data</span>
+  <h2 class="reveal d2">Every Screen Needs <span class="highlight">Data</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:28px;color:var(--foreground);">Your wireframes show WHAT users see. But WHERE does that information come from? It comes from a <strong>database</strong>.</p>
+    <ul style="margin-top:16px;">
+      <li style="font-size:24px;color:var(--foreground);">Login screen → needs <strong>user accounts</strong> data</li>
+      <li style="font-size:24px;color:var(--foreground);">Home feed → needs <strong>posts/items</strong> data</li>
+      <li style="font-size:24px;color:var(--foreground);">Profile → needs <strong>user profile</strong> data</li>
+      <li style="font-size:24px;color:var(--foreground);">Form → <strong>creates new</strong> data records</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SLIDE 4: What is a Database -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Fundamentals</span>
+  <h2 class="reveal d2">What is a <span class="highlight">Database</span>?</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:30px;color:var(--foreground);">A <strong>database</strong> is an organized collection of data stored electronically. Think of it as a super-powered Excel spreadsheet.</p>
+    <p style="margin-top:16px;font-size:24px;">In Supabase, your database uses <strong class="highlight">PostgreSQL</strong>, the most powerful open-source database in the world.</p>
+  </div>
+  <p class="reveal d4" style="margin-top:20px;">Every app with dynamic content (content that changes) needs a database behind it.</p>
+</section>
+
+<!-- SLIDE 5: Database = Spreadsheet Analogy -->
+<section class="slide">
+  <span class="section-number">02</span>
+  <span class="eyebrow reveal d1">Analogy</span>
+  <h2 class="reveal d2">Think <span class="highlight">Spreadsheet</span></h2>
+  <div class="grid-2 reveal d3">
+    <div class="grid-card">
+      <h3 style="font-size:24px;color:var(--accent);">Spreadsheet Terms</h3>
+      <ul style="margin-top:12px;">
+        <li style="font-size:22px;">File = Database</li>
+        <li style="font-size:22px;">Sheet/Tab = Table</li>
+        <li style="font-size:22px;">Column header = Field</li>
+        <li style="font-size:22px;">Row = Record</li>
+        <li style="font-size:22px;">Cell = Value</li>
+      </ul>
+    </div>
+    <div class="grid-card">
+      <h3 style="font-size:24px;color:var(--accent-secondary);">Database Terms</h3>
+      <ul style="margin-top:12px;">
+        <li style="font-size:22px;"><strong>Table</strong> = a category of data</li>
+        <li style="font-size:22px;"><strong>Field/Column</strong> = a property</li>
+        <li style="font-size:22px;"><strong>Record/Row</strong> = one entry</li>
+        <li style="font-size:22px;"><strong>Primary Key</strong> = unique ID</li>
+        <li style="font-size:22px;"><strong>Foreign Key</strong> = link to another table</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: Tables Explained -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Tables</span>
+  <h2 class="reveal d2">What is a <span class="highlight">Table</span>?</h2>
+  <p class="reveal d3">A table stores ONE type of data. Each table represents a "thing" in your app:</p>
+  <div class="grid-3 reveal d4">
+    <div class="grid-card" style="text-align:center;">
+      <p style="font-size:36px;">👤</p>
+      <p style="font-size:22px;color:var(--foreground);"><strong>users</strong></p>
+      <p style="font-size:18px;">All user accounts</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <p style="font-size:36px;">📦</p>
+      <p style="font-size:22px;color:var(--foreground);"><strong>items</strong></p>
+      <p style="font-size:18px;">Lost/found items</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <p style="font-size:36px;">🏷️</p>
+      <p style="font-size:22px;color:var(--foreground);"><strong>categories</strong></p>
+      <p style="font-size:18px;">Item categories</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <p style="font-size:36px;">💬</p>
+      <p style="font-size:22px;color:var(--foreground);"><strong>claims</strong></p>
+      <p style="font-size:18px;">Claim requests</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <p style="font-size:36px;">🔔</p>
+      <p style="font-size:22px;color:var(--foreground);"><strong>notifications</strong></p>
+      <p style="font-size:18px;">User alerts</p>
+    </div>
+    <div class="grid-card" style="text-align:center;">
+      <p style="font-size:36px;">📍</p>
+      <p style="font-size:22px;color:var(--foreground);"><strong>locations</strong></p>
+      <p style="font-size:18px;">Campus buildings</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: Fields/Columns -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Fields</span>
+  <h2 class="reveal d2">Fields = <span class="highlight">Properties</span></h2>
+  <p class="reveal d3">Fields are the COLUMNS in your table. Each field stores one piece of information:</p>
+  <div class="db-table reveal d4">
+    <div class="db-table-header">📦 items table</div>
+    <div class="db-table-row"><span>id</span><span>uuid (auto-generated)</span></div>
+    <div class="db-table-row"><span>title</span><span>text</span></div>
+    <div class="db-table-row"><span>description</span><span>text</span></div>
+    <div class="db-table-row"><span>category</span><span>text</span></div>
+    <div class="db-table-row"><span>status</span><span>text (lost/found/claimed)</span></div>
+    <div class="db-table-row"><span>image_url</span><span>text</span></div>
+    <div class="db-table-row"><span>location</span><span>text</span></div>
+    <div class="db-table-row"><span>user_id</span><span>uuid (who posted)</span></div>
+    <div class="db-table-row"><span>created_at</span><span>timestamp</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 8: Data Types -->
+<section class="slide">
+  <span class="section-number">03</span>
+  <span class="eyebrow reveal d1">Data Types</span>
+  <h2 class="reveal d2">Common <span class="highlight">Data Types</span></h2>
+  <table class="reveal d3">
+    <tr><th>Type</th><th>Stores</th><th>Example</th><th>Supabase Type</th></tr>
+    <tr><td><strong>text</strong></td><td>Words, sentences</td><td>"Black umbrella"</td><td>text / varchar</td></tr>
+    <tr><td><strong>integer</strong></td><td>Whole numbers</td><td>42, 100, 0</td><td>int4 / int8</td></tr>
+    <tr><td><strong>float</strong></td><td>Decimal numbers</td><td>19.99, 3.14</td><td>float4 / float8</td></tr>
+    <tr><td><strong>boolean</strong></td><td>True or False</td><td>true, false</td><td>bool</td></tr>
+    <tr><td><strong>timestamp</strong></td><td>Date + time</td><td>2026-07-12 08:30:00</td><td>timestamptz</td></tr>
+    <tr><td><strong>uuid</strong></td><td>Unique identifier</td><td>a1b2c3d4-...</td><td>uuid</td></tr>
+  </table>
+</section>
+
+<!-- SLIDE 9: Records/Rows -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Records</span>
+  <h2 class="reveal d2">Records = <span class="highlight">Entries</span></h2>
+  <p class="reveal d3">Each ROW in a table is one record. One item, one user, one entry:</p>
+  <table class="reveal d4">
+    <tr><th>id</th><th>title</th><th>category</th><th>status</th><th>location</th></tr>
+    <tr><td>1</td><td>Black Umbrella</td><td>Personal</td><td>lost</td><td>Building A</td></tr>
+    <tr><td>2</td><td>Scientific Calculator</td><td>School</td><td>found</td><td>Library</td></tr>
+    <tr><td>3</td><td>Red Water Bottle</td><td>Personal</td><td>claimed</td><td>Cafeteria</td></tr>
+    <tr><td>4</td><td>Student ID</td><td>Documents</td><td>found</td><td>Gym</td></tr>
+  </table>
+  <p class="reveal d5" style="margin-top:20px;font-size:22px;">Each row = one item. When a user posts a new lost item, a NEW ROW is added.</p>
+</section>
+
+<!-- SLIDE 10: Primary Key -->
+<section class="slide">
+  <span class="section-number">04</span>
+  <span class="eyebrow reveal d1">Primary Key</span>
+  <h2 class="reveal d2">Primary Key = <span class="highlight">Unique ID</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:28px;color:var(--foreground);">Every table needs a <strong>primary key</strong>: a unique identifier for each record. No two records can have the same ID.</p>
+    <ul style="margin-top:16px;">
+      <li style="font-size:24px;color:var(--foreground);"><strong>UUID</strong> — Random unique string (Supabase default). Best for most cases.</li>
+      <li style="font-size:24px;color:var(--foreground);"><strong>Auto-increment</strong> — 1, 2, 3, 4... Simple pero sequential.</li>
+    </ul>
+    <p style="margin-top:16px;font-size:22px;">In Supabase, the <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">id</code> column is automatically created as UUID. You don't need to manage it.</p>
+  </div>
+</section>
+
+<!-- SLIDE 11: Q&A Pause 1 -->
+
+
+<!-- SLIDE 12: Relationships Intro -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Relationships</span>
+  <h2 class="reveal d2">Table <span class="highlight">Relationships</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:28px;color:var(--foreground);">Tables don't live in isolation. They CONNECT to each other through <strong>relationships</strong>.</p>
+    <p style="margin-top:16px;font-size:24px;">Example: An <strong class="highlight">item</strong> is posted by a <strong class="highlight-cyan">user</strong>. The items table needs to know WHICH user posted it.</p>
+    <p style="margin-top:16px;font-size:24px;">This connection is made through a <strong>foreign key</strong>: a field in one table that references the primary key of another table.</p>
+  </div>
+</section>
+
+<!-- SLIDE 13: One-to-Many -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">1:Many</span>
+  <h2 class="reveal d2">One-to-Many <span class="highlight">Relationship</span></h2>
+  <div class="grid-2 reveal d3">
+    <div>
+      <p style="font-size:26px;color:var(--foreground);">ONE user can have MANY items.</p>
+      <p style="font-size:22px;margin-top:12px;">How? The <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">items</code> table has a <code style="background:rgba(6,182,212,0.2);padding:2px 8px;border-radius:4px;">user_id</code> field pointing to the user who created it.</p>
+      <div style="margin-top:20px;font-size:22px;line-height:2;">
+        <p><strong class="highlight">users</strong> (1)</p>
+        <p style="padding-left:20px;">↓ has many</p>
+        <p><strong class="highlight-cyan">items</strong> (many)</p>
+      </div>
+    </div>
+    <div>
+      <p style="font-size:22px;color:var(--accent);font-weight:600;margin-bottom:8px;">Real examples:</p>
+      <ul>
+        <li style="font-size:20px;">1 User → Many Posts</li>
+        <li style="font-size:20px;">1 User → Many Orders</li>
+        <li style="font-size:20px;">1 Category → Many Items</li>
+        <li style="font-size:20px;">1 Teacher → Many Students</li>
+        <li style="font-size:20px;">1 Classroom → Many Schedules</li>
+      </ul>
+      <p style="margin-top:12px;font-size:20px;color:var(--accent);">This is the MOST COMMON relationship in apps.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14: Foreign Key Visual -->
+<section class="slide">
+  <span class="section-number">05</span>
+  <span class="eyebrow reveal d1">Foreign Key</span>
+  <h2 class="reveal d2">How <span class="highlight">Foreign Keys</span> Work</h2>
+  <div class="grid-2 reveal d3">
+    <div class="db-table">
+      <div class="db-table-header">👤 users</div>
+      <div class="db-table-row"><span>id: <strong style="color:var(--accent);">abc-123</strong></span><span>PK</span></div>
+      <div class="db-table-row"><span>name: Maria</span><span></span></div>
+      <div class="db-table-row"><span>email: maria@...</span><span></span></div>
+    </div>
+    <div class="db-table">
+      <div class="db-table-header">📦 items</div>
+      <div class="db-table-row"><span>id: xyz-789</span><span>PK</span></div>
+      <div class="db-table-row"><span>title: Black Umbrella</span><span></span></div>
+      <div class="db-table-row"><span>user_id: <strong style="color:var(--accent);">abc-123</strong></span><span>FK → users</span></div>
+    </div>
+  </div>
+  <p class="reveal d4" style="margin-top:20px;font-size:24px;">The <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">user_id</code> in items <strong>matches</strong> the <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">id</code> in users. That's the link. Now we know Maria posted the umbrella.</p>
+</section>
+
+<!-- SLIDE 15: Many-to-Many -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">M:M</span>
+  <h2 class="reveal d2">Many-to-Many <span class="highlight-cyan">Relationship</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:26px;color:var(--foreground);">Some relationships go BOTH ways:</p>
+    <ul style="margin-top:12px;">
+      <li style="font-size:22px;color:var(--foreground);">Many students can enroll in many courses</li>
+      <li style="font-size:22px;color:var(--foreground);">Many users can bookmark many items</li>
+      <li style="font-size:22px;color:var(--foreground);">Many products can belong to many categories</li>
+    </ul>
+    <p style="margin-top:16px;font-size:24px;">Solution: create a <strong class="highlight">junction table</strong> (also called a join table):</p>
+    <p style="margin-top:8px;font-size:22px;text-align:center;line-height:2;">
+      <strong>students</strong> ←→ <strong class="highlight">enrollments</strong> ←→ <strong>courses</strong><br>
+      <span style="font-size:18px;color:var(--muted-foreground);">(student_id + course_id in the enrollments table)</span>
+    </p>
+  </div>
+</section>
+
+<!-- SLIDE 16: Relationship Summary -->
+<section class="slide">
+  <span class="section-number">06</span>
+  <span class="eyebrow reveal d1">Summary</span>
+  <h2 class="reveal d2">Relationship <span class="highlight">Types</span></h2>
+  <table class="reveal d3">
+    <tr><th>Type</th><th>Example</th><th>How to Implement</th></tr>
+    <tr><td><strong>One-to-One</strong></td><td>1 user → 1 profile</td><td>user_id in profile table (unique)</td></tr>
+    <tr><td><strong>One-to-Many</strong></td><td>1 user → many posts</td><td>user_id in posts table</td></tr>
+    <tr><td><strong>Many-to-Many</strong></td><td>students ↔ courses</td><td>Junction table with both IDs</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top:20px;font-size:24px;color:var(--accent);">For most student projects, <strong>One-to-Many</strong> is all you need. Keep it simple.</p>
+</section>
+
+<!-- SLIDE 17: Q&A Pause 2 -->
+
+
+<!-- SLIDE 18: Designing Tables from Screens -->
+<section class="slide">
+  <span class="section-number">07</span>
+  <span class="eyebrow reveal d1">Process</span>
+  <h2 class="reveal d2">Screens → <span class="highlight">Tables</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:26px;color:var(--foreground);margin-bottom:16px;">Look at your wireframes and ask: "What DATA does this screen display or collect?"</p>
+    <table style="margin:0;">
+      <tr><th>Screen</th><th>Data Needed</th><th>Table</th></tr>
+      <tr><td>Login</td><td>Email, password</td><td>users (handled by Supabase Auth)</td></tr>
+      <tr><td>Home Feed</td><td>List of items</td><td>items</td></tr>
+      <tr><td>Post Form</td><td>Title, desc, photo, category</td><td>items (insert)</td></tr>
+      <tr><td>Detail View</td><td>Full item info + poster name</td><td>items + users (join)</td></tr>
+      <tr><td>Profile</td><td>Name, email, avatar</td><td>profiles</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- SLIDE 19: Supabase Auth Table -->
+<section class="slide">
+  <span class="section-number">07</span>
+  <span class="eyebrow reveal d1">Auth</span>
+  <h2 class="reveal d2">Supabase Handles <span class="highlight">Auth</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:26px;color:var(--foreground);">Good news: you DON'T create a users table for login. Supabase has a built-in <strong>auth.users</strong> table that handles:</p>
+    <ul style="margin-top:16px;">
+      <li style="font-size:22px;color:var(--foreground);">✅ Email/password registration</li>
+      <li style="font-size:22px;color:var(--foreground);">✅ Password hashing (security)</li>
+      <li style="font-size:22px;color:var(--foreground);">✅ Session management (stay logged in)</li>
+      <li style="font-size:22px;color:var(--foreground);">✅ Unique user IDs (uuid)</li>
+    </ul>
+    <p style="margin-top:16px;font-size:22px;color:var(--accent);">BUT: You'll create a separate <strong>profiles</strong> table for extra user data (name, avatar, role, bio).</p>
+  </div>
+</section>
+
+<!-- SLIDE 20: Profiles Table Pattern -->
+<section class="slide">
+  <span class="section-number">07</span>
+  <span class="eyebrow reveal d1">Profiles Pattern</span>
+  <h2 class="reveal d2">The <span class="highlight">Profiles</span> Table</h2>
+  <div class="grid-2 reveal d3">
+    <div class="db-table">
+      <div class="db-table-header">👤 profiles</div>
+      <div class="db-table-row"><span>id</span><span>uuid (= auth.users.id)</span></div>
+      <div class="db-table-row"><span>full_name</span><span>text</span></div>
+      <div class="db-table-row"><span>avatar_url</span><span>text</span></div>
+      <div class="db-table-row"><span>role</span><span>text (student/admin)</span></div>
+      <div class="db-table-row"><span>student_id</span><span>text</span></div>
+      <div class="db-table-row"><span>created_at</span><span>timestamp</span></div>
+    </div>
+    <div>
+      <p style="font-size:24px;color:var(--foreground);margin-bottom:12px;"><strong>Key pattern:</strong></p>
+      <ul>
+        <li style="font-size:22px;">The <code style="background:rgba(168,85,247,0.2);padding:2px 6px;border-radius:4px;">id</code> matches the auth user's ID</li>
+        <li style="font-size:22px;">Created when user signs up</li>
+        <li style="font-size:22px;">Stores display name, avatar, role</li>
+        <li style="font-size:22px;">All other tables reference this ID</li>
+      </ul>
+      <p style="margin-top:16px;font-size:20px;color:var(--accent);">This is the STANDARD pattern for Supabase apps. Almost every project uses it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 21: Full Example Schema -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Full Example</span>
+  <h2 class="reveal d2">Lost &amp; Found <span class="highlight">Schema</span></h2>
+  <div class="grid-2 reveal d3">
+    <div>
+      <div class="db-table" style="margin-top:0;">
+        <div class="db-table-header">👤 profiles</div>
+        <div class="db-table-row"><span>id (PK)</span><span>uuid</span></div>
+        <div class="db-table-row"><span>full_name</span><span>text</span></div>
+        <div class="db-table-row"><span>avatar_url</span><span>text</span></div>
+        <div class="db-table-row"><span>role</span><span>text</span></div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">🏷️ categories</div>
+        <div class="db-table-row"><span>id (PK)</span><span>uuid</span></div>
+        <div class="db-table-row"><span>name</span><span>text</span></div>
+        <div class="db-table-row"><span>icon</span><span>text</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="db-table" style="margin-top:0;">
+        <div class="db-table-header">📦 items</div>
+        <div class="db-table-row"><span>id (PK)</span><span>uuid</span></div>
+        <div class="db-table-row"><span>title</span><span>text</span></div>
+        <div class="db-table-row"><span>description</span><span>text</span></div>
+        <div class="db-table-row"><span>status</span><span>text</span></div>
+        <div class="db-table-row"><span>image_url</span><span>text</span></div>
+        <div class="db-table-row"><span>location</span><span>text</span></div>
+        <div class="db-table-row"><span>user_id (FK)</span><span>→ profiles</span></div>
+        <div class="db-table-row"><span>category_id (FK)</span><span>→ categories</span></div>
+        <div class="db-table-row"><span>created_at</span><span>timestamp</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 22: Naming Conventions -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Naming</span>
+  <h2 class="reveal d2">Naming <span class="highlight">Conventions</span></h2>
+  <div class="purple-card reveal d3">
+    <table style="margin:0;">
+      <tr><th>Rule</th><th>Example</th><th>Bad Example</th></tr>
+      <tr><td>Table names: plural, lowercase</td><td><code>items</code>, <code>users</code></td><td><code>Item</code>, <code>tbl_Users</code></td></tr>
+      <tr><td>Field names: snake_case</td><td><code>created_at</code>, <code>user_id</code></td><td><code>createdAt</code>, <code>UserID</code></td></tr>
+      <tr><td>Foreign keys: referenced_table_id</td><td><code>user_id</code>, <code>category_id</code></td><td><code>uid</code>, <code>cat</code></td></tr>
+      <tr><td>Booleans: is_ or has_ prefix</td><td><code>is_active</code>, <code>has_photo</code></td><td><code>active</code>, <code>photo</code></td></tr>
+      <tr><td>Timestamps: _at suffix</td><td><code>created_at</code>, <code>updated_at</code></td><td><code>date</code>, <code>time</code></td></tr>
+    </table>
+  </div>
+  <p class="reveal d4" style="margin-top:16px;font-size:22px;color:var(--accent);">Follow these from the start. Renaming later is painful.</p>
+</section>
+
+<!-- SLIDE 23: Common Fields Every Table Needs -->
+<section class="slide">
+  <span class="section-number">08</span>
+  <span class="eyebrow reveal d1">Must-Have Fields</span>
+  <h2 class="reveal d2">Fields <span class="highlight">Every</span> Table Needs</h2>
+  <table class="reveal d3">
+    <tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+    <tr><td><code>id</code></td><td>uuid</td><td>Unique identifier (Primary Key)</td></tr>
+    <tr><td><code>created_at</code></td><td>timestamptz</td><td>When the record was created</td></tr>
+    <tr><td><code>updated_at</code></td><td>timestamptz</td><td>When last modified (optional)</td></tr>
+    <tr><td><code>user_id</code></td><td>uuid (FK)</td><td>Who created this record (if applicable)</td></tr>
+  </table>
+  <p class="reveal d4" style="margin-top:20px;font-size:24px;">Supabase auto-generates <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">id</code> and <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">created_at</code> for you. Just add your custom fields.</p>
+</section>
+
+<!-- SLIDE 24: Status Fields -->
+<section class="slide">
+  <span class="section-number">09</span>
+  <span class="eyebrow reveal d1">Status Pattern</span>
+  <h2 class="reveal d2">Status <span class="highlight">Fields</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:26px;color:var(--foreground);margin-bottom:16px;">Most apps need a STATUS field to track where something is in its lifecycle:</p>
+    <div class="grid-3">
+      <div style="text-align:center;">
+        <p style="font-size:20px;color:var(--accent);font-weight:600;">Lost & Found</p>
+        <p style="font-size:18px;">lost → found → claimed</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:20px;color:var(--accent);font-weight:600;">Order System</p>
+        <p style="font-size:18px;">pending → processing → completed</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:20px;color:var(--accent);font-weight:600;">Task Manager</p>
+        <p style="font-size:18px;">todo → in_progress → done</p>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-size:22px;">Store as <code style="background:rgba(168,85,247,0.2);padding:2px 8px;border-radius:4px;">text</code> with predefined values. In FlutterFlow, display with colored badges.</p>
+  </div>
+</section>
+
+<!-- SLIDE 25: Thinking About Queries -->
+<section class="slide">
+  <span class="section-number">09</span>
+  <span class="eyebrow reveal d1">Queries</span>
+  <h2 class="reveal d2">Think About <span class="highlight">Queries</span></h2>
+  <p class="reveal d3" style="font-size:26px;">Before finalizing your schema, ask: "What questions will my app ask the database?"</p>
+  <div class="purple-card reveal d4">
+    <ul>
+      <li style="font-size:22px;color:var(--foreground);">"Show me all <strong>lost items</strong> posted this week" → filter by status + created_at</li>
+      <li style="font-size:22px;color:var(--foreground);">"Show me items posted by <strong>this user</strong>" → filter by user_id</li>
+      <li style="font-size:22px;color:var(--foreground);">"Show items in the <strong>Electronics</strong> category" → filter by category_id</li>
+      <li style="font-size:22px;color:var(--foreground);">"How many items are currently <strong>unclaimed</strong>?" → count where status ≠ claimed</li>
+      <li style="font-size:22px;color:var(--foreground);">"Show the <strong>newest items first</strong>" → order by created_at DESC</li>
+    </ul>
+    <p style="margin-top:16px;font-size:20px;color:var(--accent);">If you can't answer a question with your current fields, you need to add one!</p>
+  </div>
+</section>
+
+<!-- SLIDE 26: Q&A Pause 3 -->
+
+
+<!-- SLIDE 27: Schema Planning Steps -->
+<section class="slide">
+  <span class="section-number">10</span>
+  <span class="eyebrow reveal d1">Process</span>
+  <h2 class="reveal d2">Schema Planning <span class="highlight">Steps</span></h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:24px;color:var(--foreground);line-height:2.2;">
+      <strong class="highlight">Step 1:</strong> List all "things" in your app (nouns) → tables<br>
+      <strong class="highlight-cyan">Step 2:</strong> For each table, list properties → fields<br>
+      <strong class="highlight">Step 3:</strong> Choose data types for each field<br>
+      <strong class="highlight-cyan">Step 4:</strong> Add id, created_at, user_id to every table<br>
+      <strong class="highlight">Step 5:</strong> Identify relationships (who owns what?)<br>
+      <strong class="highlight-cyan">Step 6:</strong> Add foreign key fields<br>
+      <strong class="highlight">Step 7:</strong> Check: can my screens query what they need?
+    </p>
+  </div>
+</section>
+
+<!-- SLIDE 28: Common Mistakes -->
+<section class="slide">
+  <span class="section-number">10</span>
+  <span class="eyebrow reveal d1">Avoid</span>
+  <h2 class="reveal d2">Database <span class="highlight">Mistakes</span></h2>
+  <ul class="reveal d3">
+    <li><strong class="highlight">No user_id</strong> — Can't tell who created what. Always link records to users.</li>
+    <li><strong class="highlight">Storing lists in one field</strong> — Don't put "cat1,cat2,cat3" in one text field. Use a separate table.</li>
+    <li><strong class="highlight">No timestamps</strong> — You'll always need to know WHEN something was created.</li>
+    <li><strong class="highlight">Too many tables</strong> — Start simple. 2-4 tables is fine for MVP. Add more later.</li>
+    <li><strong class="highlight">Wrong data types</strong> — Don't store numbers as text. Don't store dates as text.</li>
+    <li><strong class="highlight">No status field</strong> — Almost every data entity has a lifecycle. Track it.</li>
+  </ul>
+</section>
+
+<!-- SLIDE 29: Minimum Schema -->
+<section class="slide">
+  <span class="section-number">10</span>
+  <span class="eyebrow reveal d1">MVP Schema</span>
+  <h2 class="reveal d2">Minimum <span class="highlight">Schema</span> for MVP</h2>
+  <div class="purple-card reveal d3">
+    <p style="font-size:26px;color:var(--foreground);margin-bottom:16px;">For most student projects, you need exactly:</p>
+    <div class="grid-3">
+      <div class="db-table" style="margin:0;">
+        <div class="db-table-header">👤 profiles</div>
+        <div class="db-table-row"><span>id, name, role</span></div>
+      </div>
+      <div class="db-table" style="margin:0;">
+        <div class="db-table-header">📦 main_entity</div>
+        <div class="db-table-row"><span>id, fields, user_id, status, created_at</span></div>
+      </div>
+      <div class="db-table" style="margin:0;">
+        <div class="db-table-header">🏷️ categories</div>
+        <div class="db-table-row"><span>id, name</span></div>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-size:22px;color:var(--accent);">That's it. 2-3 tables. Don't over-engineer. You can always add more tables later.</p>
+  </div>
+</section>
+
+<!-- SLIDE 30: Workshop Activity -->
+
+
+<!-- SLIDE 31: Session Recap -->
+<section class="slide">
+  <span class="section-number">11</span>
+  <span class="eyebrow reveal d1">Recap</span>
+  <h2 class="reveal d2">What We Covered</h2>
+  <ul class="reveal d3">
+    <li><strong class="highlight">Database</strong> = organized data storage (like a spreadsheet)</li>
+    <li><strong class="highlight">Tables</strong> = categories of data (users, items, categories)</li>
+    <li><strong class="highlight">Fields</strong> = properties/columns with specific data types</li>
+    <li><strong class="highlight">Records</strong> = individual entries/rows</li>
+    <li><strong class="highlight">Primary Key</strong> = unique ID for each record</li>
+    <li><strong class="highlight">Foreign Key</strong> = links one table to another</li>
+    <li><strong class="highlight">Relationships:</strong> One-to-Many is most common</li>
+    <li>Supabase handles auth; you create profiles + your data tables</li>
+  </ul>
+</section>
+
+<!-- SLIDE 32: Next Session -->
+
+
+<!-- CC106 STUDENT EXPLAINERS: SESSION 6 -->
+<section class="slide cc106-explainer-slide">
+  <span class="eyebrow reveal d1">Concept Model</span>
+  <h2 class="reveal d2">How Data Planning Basics fits together</h2>
+  <div class="cc106-explainer-grid reveal d3"><div class="cc106-explainer-card"><h3>Entities become tables</h3><p>Stable nouns such as users, items, and categories usually become tables.</p></div><div class="cc106-explainer-card"><h3>Properties become fields</h3><p>Each field needs a name, data type, and rule for whether it is required.</p></div><div class="cc106-explainer-card"><h3>Relationships carry meaning</h3><p>Foreign keys connect records without copying the same information everywhere.</p></div></div>
+</section>
+<section class="slide cc106-explainer-slide">
+  <span class="eyebrow reveal d1">System View</span>
+  <h2 class="reveal d2">Trace the behavior from start to finish</h2>
+  <div class="cc106-flow-chain reveal d3"><div class="cc106-flow-step">Screen requirement</div><div class="cc106-flow-step">Entity and fields</div><div class="cc106-flow-step">Table relationship</div><div class="cc106-flow-step">Query the screen needs</div></div>
+  <div class="cc106-compare reveal d4">
+    <div><strong>Common failure</strong><p>Designing tables one screen at a time creates duplicate fields and conflicting data.</p></div>
+    <div><strong>Better approach</strong><p>Model the shared entities first, then check that every screen can query them.</p></div>
+  </div>
+</section>
+<!-- CC106 OFFICIAL REFERENCE: SESSION 6 -->
+<section class="slide cc106-reference-slide" data-cc106-reference="6">
+  <span class="eyebrow reveal d1">Official Interface Reference</span>
+  <h2 class="reveal d2">Database workspace</h2>
+  <div class="cc106-reference-layout reveal d3">
+    <div class="cc106-reference-copy">
+      <h3>What to notice</h3>
+      <ul><li><strong>Entities become tables:</strong> Stable nouns such as users, items, and categories usually become tables.</li><li><strong>Properties become fields:</strong> Each field needs a name, data type, and rule for whether it is required.</li><li><strong>Relationships carry meaning:</strong> Foreign keys connect records without copying the same information everywhere.</li></ul>
+    </div>
+    <div class="cc106-reference-frame">
+      <div class="cc106-reference-bar"><span class="cc106-reference-dots"><i></i><i></i><i></i></span><span>Database workspace</span></div>
+      <div class="cc106-reference-image"><img src="assets/student-visuals/session-06-reference.png" alt="Official Supabase Documentation reference for Data Planning Basics" /></div>
+      <div class="cc106-reference-caption"><span>Use the labels and navigation shown here to orient yourself before changing the project.</span><span>Supabase Documentation</span></div>
+    </div>
+  </div>
+</section>
+<section class="slide" style="background:radial-gradient(ellipse at 50% 50%,rgba(168,85,247,0.15) 0%,transparent 60%),var(--gradient-1);align-items:center;text-align:center;">
+  <span class="eyebrow reveal d1">Coming Up</span>
+  <h2 class="reveal d2" style="font-size:72px;">Coming Up Next</h2>
+  <h3 class="reveal d3" style="color:var(--accent);font-size:40px;margin-top:20px;">Dart Basics for Custom Functions</h3>
+  <div class="purple-card reveal d4" style="max-width:700px;margin:30px auto 0;">
+    <p style="font-size:24px;text-align:center;color:var(--foreground);">🎯 We'll learn Dart programming basics: variables, types, functions, conditionals.<br>This prepares you for FlutterFlow's custom actions later.</p>
+  </div>
+  
+</section>
+
+<script src="assets/student-visuals/image-lightbox.js?v=2"></script>
+</body>
+</html>
