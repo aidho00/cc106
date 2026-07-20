@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <!-- skill:chassis -->
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <style>
 /* =====================================================
    PRESENTATION CHASSIS — style-invariant base styles
@@ -464,17 +465,12 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
             const style = getComputedStyle(slide);
             const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
             const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
-
-            viewport.style.backgroundColor = hasBackgroundColor ? style.backgroundColor : '';
-            viewport.style.backgroundImage = hasBackgroundImage ? style.backgroundImage : '';
-            viewport.style.backgroundPosition = style.backgroundPosition || 'center center';
-            viewport.style.backgroundRepeat = style.backgroundRepeat || 'no-repeat';
-            viewport.style.backgroundSize = 'cover';
-
-            /* Keep the authored background on the 1920x1080 artboard too.
-               This prevents clipped or transparent edges when the browser
-               viewport does not share the slide's 16:9 ratio. */
-            slide.style.removeProperty('background');
+            if (hasBackgroundImage || hasBackgroundColor) {
+                viewport.style.background = style.background;
+            } else {
+                viewport.style.background = '';
+            }
+            slide.style.background = 'transparent';
         }
 
         /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
@@ -1015,29 +1011,12 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
             const scales = this.scales;
 
             const update = () => {
-                const mobileReadingMode = window.matchMedia(
-                    '(max-width: 768px) and (orientation: portrait)'
-                ).matches;
-
-                /* Portrait phones use a readable minimum scale and allow
-                   horizontal panning. Landscape/desktop keeps fit-to-screen. */
-                const scale = mobileReadingMode
-                    ? Math.max(window.innerWidth / CANVAS_W, 0.46)
-                    : Math.min(
-                        window.innerWidth / CANVAS_W,
-                        window.innerHeight / CANVAS_H
-                    );
-
-                document.documentElement.classList.toggle(
-                    'mobile-reading-mode',
-                    mobileReadingMode
+                const scale = Math.min(
+                    window.innerWidth / CANVAS_W,
+                    window.innerHeight / CANVAS_H
                 );
-
                 scales.forEach((el) => {
-                    if (!el) return;
-                    el.style.setProperty('--slide-scale', scale);
-                    el.style.setProperty('--scaled-width', `${CANVAS_W * scale}px`);
-                    el.style.setProperty('--scaled-height', `${CANVAS_H * scale}px`);
+                    el?.style.setProperty('--slide-scale', scale);
                 });
             };
 
@@ -1101,11 +1080,9 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 
 </script>
 <!-- /skill:chassis -->
-    <title>Session 3: UI/UX Basics | Student Edition</title>
-
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" />
-
-    <style>
+<title>Session 3: UI/UX Basics | Student Edition with Visual Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
       :root {
         --background: #0d0a1a;
         --foreground: #f0eef6;
@@ -1245,7 +1222,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
       }
 
     </style>
-<style data-student-watermark>
+<style data-student-watermark="">
 .slide::before {
   content: "Application Development & Emerging Technologies";
   position: fixed;
@@ -1262,7 +1239,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   z-index: 50;
 }
 </style>
-  <style>
+<style>
     /* Stable visual frames shared by mockups and real interface references. */
     .interface-reference { width: 100%; height: 470px; display: grid; grid-template-rows: 42px minmax(0,1fr) 48px; overflow: hidden; border: 1px solid rgba(255,255,255,.16); border-radius: 18px; background: #10131b; box-shadow: 0 22px 55px rgba(0,0,0,.3); }
     .interface-reference--compact { height: 430px; }
@@ -1314,7 +1291,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
     .whitespace-slide .principle-box { padding: 28px !important; }
     .whitespace-slide ul { gap: 10px !important; }
   </style>
-<style data-image-lightbox-styles>
+<style data-image-lightbox-styles="">
   .slide img[data-lightbox-ready] { cursor: zoom-in; transition: filter .18s ease, transform .18s ease; }
   .slide img[data-lightbox-ready]:hover { filter: brightness(1.06); }
   .slide img[data-lightbox-ready]:focus-visible { outline: 4px solid var(--accent-secondary); outline-offset: 5px; }
@@ -1328,233 +1305,298 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   .image-lightbox__close:hover, .image-lightbox__close:focus-visible { background: var(--accent); outline: none; }
   @media (max-width: 760px) { .image-lightbox { padding: 72px 18px 28px; } .image-lightbox__image { max-width: 96vw !important; max-height: 76vh !important; } }
 </style>
-
-<style id="cc106-presentation-responsive-fix">
-/* Full-bleed backgrounds and mobile reading support */
-.slide-viewport {
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-size: cover !important;
-}
-.slide {
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-size: cover !important;
-}
-
-@media (max-width: 768px) and (orientation: portrait) {
-    html {
-        scroll-snap-type: y proximity !important;
-    }
-    body {
-        overscroll-behavior-x: none;
-    }
-    .slide-viewport {
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        touch-action: pan-x pan-y pinch-zoom !important;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        scrollbar-color: color-mix(in srgb, var(--accent) 60%, transparent) transparent;
-    }
-    .slide-viewport::-webkit-scrollbar {
-        display: block;
-        height: 5px;
-    }
-    .slide-viewport::-webkit-scrollbar-thumb {
-        background: color-mix(in srgb, var(--accent) 60%, transparent);
-        border-radius: 999px;
-    }
-    .slide-scale {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        width: var(--scaled-width, 883px) !important;
-        height: var(--scaled-height, 497px) !important;
-        margin: max(16px, calc((100dvh - var(--scaled-height, 497px)) / 2)) auto !important;
-        transform: none !important;
-        transform-origin: top left !important;
-    }
-    .slide {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        transform: scale(var(--slide-scale, 0.46)) !important;
-        transform-origin: top left !important;
-    }
-    .keyboard-hint {
-        display: none !important;
-    }
-}
-</style>
-
-
-
-
-<style id="lesson-mobile-accessibility-fix">
-/* Mobile lesson controls, reliable reveals, zoom support, and light-card contrast. */
-.lesson-slide-controls {
-    position: fixed;
-    left: 50%;
-    bottom: max(10px, env(safe-area-inset-bottom));
-    z-index: 2147483000;
-    display: none;
+<style data-principle-mockup-styles="">
+  .principle-demo {
+    display: grid;
+    grid-template-columns: 430px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+    margin-top: 12px;
+  }
+  .principle-guide {
+    min-height: 570px;
+    padding: 30px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(45,27,105,.94), rgba(24,15,57,.96));
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .principle-guide p { font-size: 22px; line-height: 1.42; }
+  .principle-guide ul { gap: 10px; margin-top: 18px; padding-left: 28px; }
+  .principle-guide li { margin: 0; font-size: 19px; line-height: 1.35; }
+  .principle-rule {
+    margin-top: 20px;
+    padding: 15px 17px;
+    border-radius: 12px;
+    background: rgba(168,85,247,.12);
+    border-left: 4px solid var(--accent);
+    color: #f7f3ff !important;
+    font-size: 18px !important;
+  }
+  .mockup-example {
+    min-width: 0;
+    display: grid;
+    grid-template-rows: 38px minmax(0,1fr) 72px;
+    height: 570px;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.17);
+    background: #121722;
+    box-shadow: 0 22px 54px rgba(0,0,0,.32);
+  }
+  .mockup-example.bad { box-shadow: 0 22px 54px rgba(0,0,0,.28), inset 0 0 0 2px rgba(239,68,68,.14); }
+  .mockup-example.good { box-shadow: 0 22px 54px rgba(0,0,0,.30), inset 0 0 0 2px rgba(34,197,94,.12); }
+  .mockup-browserbar {
+    display: flex;
     align-items: center;
-    gap: 6px;
-    max-width: calc(100vw - 16px);
-    padding: 7px;
-    border: 1px solid rgba(255,255,255,.20);
-    border-radius: 16px;
-    background: rgba(7, 12, 24, .88);
-    box-shadow: 0 12px 36px rgba(0,0,0,.38);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    transform: translateX(-50%);
-    color: #f8fafc;
-    font: 700 13px/1 var(--font-body, system-ui, sans-serif);
-    user-select: none;
-}
-.lesson-slide-controls__group { display:flex; align-items:center; gap:5px; }
-.lesson-slide-controls button {
-    min-width: 42px;
-    min-height: 40px;
-    padding: 0 10px;
-    border: 1px solid rgba(255,255,255,.20);
-    border-radius: 11px;
-    background: rgba(255,255,255,.10);
-    color: #ffffff;
-    font: inherit;
-    line-height: 1;
-    cursor: pointer;
-    touch-action: manipulation;
-}
-.lesson-slide-controls button:hover,
-.lesson-slide-controls button:focus-visible {
-    background: var(--accent, #3b82f6);
-    border-color: var(--accent, #3b82f6);
-    outline: none;
-}
-.lesson-slide-controls button:disabled { opacity:.38; cursor:not-allowed; }
-.lesson-slide-controls__count {
-    min-width: 48px;
-    padding: 0 5px;
-    color: #dbeafe;
-    text-align: center;
-    white-space: nowrap;
-}
-.lesson-slide-controls__divider {
-    width: 1px;
-    height: 28px;
-    margin: 0 1px;
-    background: rgba(255,255,255,.18);
-}
+    gap: 7px;
+    padding: 0 13px;
+    background: #1b2130;
+    border-bottom: 1px solid rgba(255,255,255,.09);
+  }
+  .mockup-browserbar i { width: 8px; height: 8px; border-radius: 50%; background: #fb7185; }
+  .mockup-browserbar i:nth-child(2) { background: #facc15; }
+  .mockup-browserbar i:nth-child(3) { background: #4ade80; }
+  .mockup-browserbar span { margin-left: 5px; color: #93a0b4; font-size: 11px; }
+  .mockup-canvas { min-height: 0; overflow: hidden; background: #f6f8fc; color: #172033; }
+  .mockup-caption {
+    padding: 12px 15px;
+    background: #1b2130;
+    border-top: 1px solid rgba(255,255,255,.09);
+  }
+  .mockup-caption strong { display: block; margin-bottom: 3px; font-size: 16px; }
+  .mockup-caption p { font-size: 13px; line-height: 1.25; color: #aeb8c8; }
+  .mockup-example.bad .mockup-caption strong { color: #fca5a5; }
+  .mockup-example.good .mockup-caption strong { color: #86efac; }
 
-/* JavaScript adds this class only when the computed surface is actually light. */
-.lesson-light-surface,
-.lesson-light-surface :is(h1,h2,h3,h4,h5,h6,p,li,dt,dd,td,th,label,small,blockquote,strong,em,code,span) {
-    color: #0f172a !important;
-    text-shadow: none !important;
-}
-.lesson-light-surface a { color: #1d4ed8 !important; }
-.lesson-light-surface .lesson-dark-surface,
-.lesson-light-surface .lesson-dark-surface :is(h1,h2,h3,h4,h5,h6,p,li,dt,dd,td,th,label,small,blockquote,strong,em,code,span) {
-    color: #f8fafc !important;
-}
+  /* Contrast mockup */
+  .contrast-app { height: 100%; padding: 25px; background: #eef1f5; }
+  .contrast-app .mini-brand { font-size: 12px; font-weight: 700; margin-bottom: 18px; }
+  .contrast-app .hero { border-radius: 16px; padding: 24px; }
+  .contrast-app .hero h3 { margin: 0 0 9px; font-size: 29px; }
+  .contrast-app .hero p { margin: 0 0 19px; font-size: 13px; line-height: 1.45; }
+  .contrast-app .hero button { border: 0; border-radius: 9px; padding: 12px 17px; font: 700 13px var(--font-body); }
+  .contrast-app .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 16px; }
+  .contrast-app .stats div { border-radius: 11px; padding: 14px; }
+  .contrast-app .stats small { display: block; font-size: 10px; }
+  .contrast-app .stats b { display: block; margin-top: 5px; font-size: 22px; }
+  .contrast-low { background: #eceff2; color: #a5abb2; }
+  .contrast-low .mini-brand { color: #9aa1a9; }
+  .contrast-low .hero { background: #e1e5e9; }
+  .contrast-low .hero h3 { color: #a4aab1; font-size: 21px; font-family: var(--font-body); font-weight: 600; }
+  .contrast-low .hero p { color: #aeb3ba; }
+  .contrast-low .hero button { background: #c9ced3; color: #a2a7ad; }
+  .contrast-low .stats div { background: #e2e6ea; }
+  .contrast-low .stats small, .contrast-low .stats b { color: #aab0b7; }
+  .contrast-strong { background: #f5f7fb; }
+  .contrast-strong .mini-brand { color: #6d28d9; }
+  .contrast-strong .hero { background: #172033; color: #fff; }
+  .contrast-strong .hero h3 { color: #fff; }
+  .contrast-strong .hero p { color: #c7d0df; }
+  .contrast-strong .hero button { background: #8b5cf6; color: #fff; }
+  .contrast-strong .stats div { background: #fff; border: 1px solid #dfe5ef; }
+  .contrast-strong .stats small { color: #718096; }
+  .contrast-strong .stats b { color: #172033; }
 
-@media (max-width: 1024px), (hover: none), (pointer: coarse) {
-    .lesson-slide-controls { display: flex !important; }
-    .keyboard-hint, .nav-dots { display: none !important; }
+  /* Alignment mockup */
+  .align-app { height: 100%; padding: 24px; background: #f7f9fc; }
+  .align-app .align-title { font-size: 24px; font-weight: 800; color: #1f2937; }
+  .align-app .align-sub { font-size: 12px; color: #7c8798; margin-top: 5px; }
+  .align-form { margin-top: 20px; }
+  .align-row { margin-bottom: 13px; }
+  .align-row label { display: block; font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 6px; }
+  .align-input { height: 36px; border: 1px solid #d7deea; border-radius: 8px; background: #fff; }
+  .align-actions { display: flex; gap: 9px; margin-top: 18px; }
+  .align-actions button { border: 0; border-radius: 8px; padding: 10px 15px; font: 700 11px var(--font-body); }
+  .align-bad .align-title { margin-left: 55px; }
+  .align-bad .align-sub { text-align: right; padding-right: 20px; }
+  .align-bad .align-row:nth-child(1) { width: 72%; margin-left: 8px; }
+  .align-bad .align-row:nth-child(2) { width: 85%; margin-left: 68px; }
+  .align-bad .align-row:nth-child(3) { width: 60%; margin-left: 27px; }
+  .align-bad .align-actions { justify-content: center; transform: translateX(70px); }
+  .align-bad .align-actions button:first-child { background: #ffca28; color: #27272a; }
+  .align-bad .align-actions button:last-child { background: #ef4444; color: #fff; }
+  .align-good { display: grid; grid-template-columns: 105px 1fr; padding: 0; }
+  .align-good aside { background: #172033; color: #aeb9ca; padding: 22px 13px; font-size: 11px; }
+  .align-good aside strong { display: block; color: #fff; font-size: 16px; margin-bottom: 22px; }
+  .align-good aside span { display: block; padding: 8px 9px; border-radius: 7px; margin-bottom: 6px; }
+  .align-good aside span.active { background: #2c3850; color: #fff; }
+  .align-good main { padding: 24px; }
+  .align-good .align-form { display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; }
+  .align-good .align-row.full { grid-column: 1 / -1; }
+  .align-good .align-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  .align-good .align-actions button:first-child { background: #edf0f5; color: #4b5563; }
+  .align-good .align-actions button:last-child { background: #7c3aed; color: #fff; }
 
-    /* Mobile must never depend on an observer/animation to expose lesson content. */
-    :root.mobile-show-all-content .reveal,
-    :root.mobile-show-all-content .reveal-left,
-    :root.mobile-show-all-content .reveal-right,
-    :root.mobile-show-all-content .reveal-scale,
-    :root.mobile-show-all-content .reveal-blur,
-    :root.mobile-show-all-content .step {
-        opacity: 1 !important;
-        visibility: visible !important;
-        transform: none !important;
-        filter: none !important;
-        animation: none !important;
-        transition: none !important;
-    }
-    .slide-viewport {
-        touch-action: pan-x pan-y pinch-zoom !important;
-        -webkit-overflow-scrolling: touch;
-    }
-}
+  /* Repetition mockup */
+  .repeat-app { height: 100%; padding: 22px; background: #f4f7fb; }
+  .repeat-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 17px; }
+  .repeat-head strong { font-size: 22px; }
+  .repeat-head button { border: 0; padding: 9px 13px; font: 700 11px var(--font-body); }
+  .repeat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 11px; }
+  .course-card { min-height: 145px; padding: 15px; background: #fff; }
+  .course-card .icon { width: 31px; height: 31px; display: grid; place-items: center; font-size: 15px; }
+  .course-card h4 { margin: 12px 0 5px; font-size: 14px; }
+  .course-card p { margin: 0; font-size: 10px; line-height: 1.35; }
+  .course-card a { display: inline-block; margin-top: 11px; font-size: 10px; font-weight: 700; text-decoration: none; }
+  .repeat-bad .repeat-head button { border-radius: 18px; background: #f97316; color: #fff; }
+  .repeat-bad .course-card:nth-child(1) { border: 2px solid #ef4444; border-radius: 4px; }
+  .repeat-bad .course-card:nth-child(1) .icon { border-radius: 50%; background: #fecaca; }
+  .repeat-bad .course-card:nth-child(1) a { color: #ef4444; }
+  .repeat-bad .course-card:nth-child(2) { border-radius: 20px; box-shadow: 0 8px 18px rgba(0,0,0,.14); }
+  .repeat-bad .course-card:nth-child(2) .icon { border-radius: 5px; background: #bbf7d0; }
+  .repeat-bad .course-card:nth-child(2) h4 { font-family: Georgia, serif; }
+  .repeat-bad .course-card:nth-child(2) a { color: #16a34a; text-transform: uppercase; }
+  .repeat-bad .course-card:nth-child(3) { background: #111827; color: #fff; transform: rotate(-1deg); }
+  .repeat-bad .course-card:nth-child(3) p { color: #d1d5db; }
+  .repeat-bad .course-card:nth-child(3) .icon { background: #fde68a; color: #111; }
+  .repeat-bad .course-card:nth-child(3) a { color: #facc15; }
+  .repeat-bad .course-card:nth-child(4) { border: 1px dashed #7c3aed; border-radius: 10px; }
+  .repeat-bad .course-card:nth-child(4) .icon { background: #ddd6fe; border-radius: 50% 0 50% 0; }
+  .repeat-bad .course-card:nth-child(4) a { color: #7c3aed; border: 1px solid #7c3aed; padding: 4px; }
+  .repeat-good .repeat-head button { border-radius: 8px; background: #7c3aed; color: #fff; }
+  .repeat-good .course-card { border: 1px solid #dfe5ef; border-radius: 12px; }
+  .repeat-good .course-card .icon { border-radius: 8px; background: #ede9fe; color: #6d28d9; }
+  .repeat-good .course-card h4 { color: #1f2937; font-family: var(--font-body); }
+  .repeat-good .course-card p { color: #738095; }
+  .repeat-good .course-card a { color: #6d28d9; }
 
-@media (max-width: 390px) {
-    .lesson-slide-controls { gap:4px; padding:6px; border-radius:14px; }
-    .lesson-slide-controls button { min-width:36px; min-height:38px; padding:0 7px; font-size:12px; }
-    .lesson-slide-controls__count { min-width:42px; font-size:12px; }
-    .lesson-slide-controls__divider { height:25px; }
-}
+  /* Proximity mockup */
+  .proximity-app { height: 100%; padding: 23px; background: #f7f9fc; }
+  .proximity-app h3 { margin: 0; color: #202a3b; font-size: 23px; }
+  .proximity-app > p { margin: 5px 0 0; font-size: 11px; color: #78869a; }
+  .checkout-panel { margin-top: 18px; }
+  .checkout-panel label { display: block; font-size: 10px; font-weight: 700; color: #4b5563; }
+  .checkout-input { height: 35px; border: 1px solid #d8dfeb; border-radius: 7px; background: #fff; }
+  .summary-line { display: flex; justify-content: space-between; font-size: 11px; color: #536174; }
+  .summary-line.total { font-size: 14px; font-weight: 800; color: #1f2937; }
+  .pay-btn { width: 100%; border: 0; border-radius: 9px; background: #7c3aed; color: #fff; padding: 12px; font: 800 12px var(--font-body); }
+  .proximity-bad .checkout-panel { position: relative; height: 330px; }
+  .proximity-bad label:nth-of-type(1) { position: absolute; left: 8px; top: 8px; }
+  .proximity-bad .checkout-input:nth-of-type(1) { position: absolute; left: 180px; top: 88px; width: 52%; }
+  .proximity-bad label:nth-of-type(2) { position: absolute; left: 200px; top: 15px; }
+  .proximity-bad .checkout-input:nth-of-type(2) { position: absolute; left: 10px; top: 132px; width: 70%; }
+  .proximity-bad .summary-line.subtotal { position: absolute; left: 10px; right: 10px; top: 196px; }
+  .proximity-bad .summary-line.fee { position: absolute; left: 120px; right: 15px; top: 238px; }
+  .proximity-bad .summary-line.total { position: absolute; left: 15px; right: 95px; top: 279px; }
+  .proximity-bad .pay-btn { position: absolute; width: 34%; right: 8px; top: 266px; background: #f97316; }
+  .proximity-good .checkout-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+  .proximity-good .field-group { display: grid; gap: 6px; }
+  .proximity-good .order-summary { grid-column: 1 / -1; padding: 15px; border-radius: 10px; background: #eef2f8; display: grid; gap: 8px; }
+  .proximity-good .pay-btn { grid-column: 1 / -1; }
 
-@media print {
-    .lesson-slide-controls { display:none !important; }
-}
-</style>
+  /* Whitespace mockup */
+  .space-app { height: 100%; background: #f6f8fc; }
+  .event-card { background: #fff; }
+  .event-card .event-tag { display: inline-block; border-radius: 99px; font-weight: 800; }
+  .event-card h3 { color: #1f2937; }
+  .event-card p { color: #6b778c; }
+  .event-meta { display: flex; align-items: center; color: #5e6b7e; }
+  .event-actions { display: flex; }
+  .event-actions button { border: 0; font-family: var(--font-body); font-weight: 800; }
+  .space-bad { padding: 14px; }
+  .space-bad .event-card { padding: 8px; border: 1px solid #d9dee7; }
+  .space-bad .event-tag { padding: 2px 5px; background: #fef3c7; color: #92400e; font-size: 9px; }
+  .space-bad .event-card h3 { margin: 3px 0; font-size: 18px; line-height: 1.05; }
+  .space-bad .event-card p { margin: 0; font-size: 10px; line-height: 1.08; }
+  .space-bad .event-meta { margin-top: 4px; gap: 3px; font-size: 9px; }
+  .space-bad .event-actions { margin-top: 4px; gap: 3px; }
+  .space-bad .event-actions button { padding: 5px 6px; font-size: 9px; border-radius: 2px; }
+  .space-bad .event-actions button:first-child { background: #7c3aed; color: #fff; }
+  .space-bad .event-actions button:last-child { background: #e5e7eb; }
+  .space-bad .event-card + .event-card { margin-top: 5px; }
+  .space-good { padding: 30px; }
+  .space-good .event-card { padding: 25px; border: 1px solid #dfe5ef; border-radius: 16px; box-shadow: 0 10px 25px rgba(43,55,78,.08); }
+  .space-good .event-tag { padding: 6px 10px; background: #ede9fe; color: #6d28d9; font-size: 10px; }
+  .space-good .event-card h3 { margin: 14px 0 9px; font-size: 26px; }
+  .space-good .event-card p { margin: 0; font-size: 12px; line-height: 1.5; }
+  .space-good .event-meta { margin-top: 18px; gap: 15px; font-size: 11px; }
+  .space-good .event-actions { margin-top: 22px; gap: 10px; }
+  .space-good .event-actions button { padding: 11px 15px; font-size: 11px; border-radius: 8px; }
+  .space-good .event-actions button:first-child { background: #7c3aed; color: #fff; }
+  .space-good .event-actions button:last-child { background: #edf0f5; color: #4b5563; }
 
-</head>
+  /* Hierarchy mockup */
+  .hierarchy-app { height: 100%; padding: 24px; background: #f6f8fc; }
+  .hierarchy-app .topline { display: flex; justify-content: space-between; align-items: center; }
+  .hierarchy-app .topline span { font-size: 11px; }
+  .hierarchy-app .topline button { border: 0; font-family: var(--font-body); font-weight: 800; }
+  .hierarchy-app .task-area { margin-top: 18px; }
+  .hierarchy-app .task-card { background: #fff; border: 1px solid #dfe5ed; }
+  .hierarchy-app .task-card h4 { margin: 0; }
+  .hierarchy-app .task-card p { margin: 5px 0 0; }
+  .hierarchy-flat .topline span, .hierarchy-flat .topline button, .hierarchy-flat .task-card h4, .hierarchy-flat .task-card p { font-size: 12px; color: #677386; }
+  .hierarchy-flat .topline button { padding: 6px 8px; background: #e5e7eb; border-radius: 4px; }
+  .hierarchy-flat .task-card { padding: 12px; margin-bottom: 9px; border-radius: 5px; }
+  .hierarchy-flat .task-card p { line-height: 1.25; }
+  .hierarchy-clear .topline span { color: #6d28d9; font-weight: 800; }
+  .hierarchy-clear .topline button { padding: 10px 14px; border-radius: 8px; background: #7c3aed; color: #fff; font-size: 11px; }
+  .hierarchy-clear .priority { padding: 22px; border-radius: 15px; background: #172033; color: #fff; }
+  .hierarchy-clear .priority small { color: #aeb9ca; font-size: 10px; }
+  .hierarchy-clear .priority h3 { margin: 6px 0 7px; color: #fff; font-size: 26px; }
+  .hierarchy-clear .priority p { margin: 0; color: #cbd4e2; font-size: 11px; }
+  .hierarchy-clear .priority button { margin-top: 15px; border: 0; border-radius: 8px; padding: 10px 13px; background: #8b5cf6; color: #fff; font: 800 11px var(--font-body); }
+  .hierarchy-clear .secondary-label { margin: 16px 0 8px; font-size: 12px; font-weight: 800; color: #354052; }
+  .hierarchy-clear .task-card { padding: 11px 13px; margin-bottom: 8px; border-radius: 9px; display: flex; justify-content: space-between; align-items: center; }
+  .hierarchy-clear .task-card h4 { color: #273244; font-size: 12px; }
+  .hierarchy-clear .task-card p { color: #8a96a8; font-size: 9px; }
+  .hierarchy-clear .task-card b { color: #6d28d9; font-size: 10px; }
+</style></head>
 <body>
-
 <!-- SLIDE 1: Title -->
 <section class="slide" style="background: radial-gradient(ellipse at 30% 50%, rgba(168,85,247,0.15) 0%, transparent 60%), var(--gradient-1); justify-content: center; align-items: center; text-align: center;">
-  <h1 class="reveal d2" style="font-size: 120px;">UI/UX<br><span class="highlight">Basics</span></h1>
-  <p class="reveal d3" style="font-size: 32px; margin-top: 30px;">Design Principles for App Developers</p>
-  <p class="reveal d4" style="font-size: 22px; color: var(--accent); margin-top: 20px;">Student Edition - expanded lesson explanations</p>
+<h1 class="reveal d2" style="font-size: 120px;">UI/UX<br/><span class="highlight">Basics</span></h1>
+<p class="reveal d3" style="font-size: 32px; margin-top: 30px;">Design Principles for App Developers</p>
+<p class="reveal d4" style="font-size: 22px; color: var(--accent); margin-top: 20px;">Student Edition - expanded lesson explanations</p>
 </section>
-
 <!-- SLIDE 2: Recap -->
 <section class="slide">
-  <span class="section-number">01</span>
-  <span class="eyebrow reveal d1">Last Session</span>
-  <h2 class="reveal d2">Quick Recap</h2>
-  <ul class="reveal d3">
-    <li>You wrote <strong class="highlight">requirements</strong> (functional + non-functional)</li>
-    <li>You created <strong class="highlight">user stories</strong> (As a ___, I want ___)</li>
-    <li>You drafted a <strong class="highlight">screen list</strong></li>
-    <li>You sketched a <strong class="highlight">user flow diagram</strong></li>
-    <li>You prioritized with <strong class="highlight">MoSCoW</strong></li>
-  </ul>
-  <p class="reveal d4" style="margin-top: 20px; color: var(--accent);">Today: making those screens LOOK good.</p>
+<span class="section-number">01</span>
+<span class="eyebrow reveal d1">Last Session</span>
+<h2 class="reveal d2">Quick Recap</h2>
+<ul class="reveal d3">
+<li>You wrote <strong class="highlight">requirements</strong> (functional + non-functional)</li>
+<li>You created <strong class="highlight">user stories</strong> (As a ___, I want ___)</li>
+<li>You drafted a <strong class="highlight">screen list</strong></li>
+<li>You sketched a <strong class="highlight">user flow diagram</strong></li>
+<li>You prioritized with <strong class="highlight">MoSCoW</strong></li>
+</ul>
+<p class="reveal d4" style="margin-top: 20px; color: var(--accent);">Today: making those screens LOOK good.</p>
 </section>
-
 <!-- SLIDE 3: UI vs UX -->
 <section class="slide" style="background: radial-gradient(ellipse at 60% 40%, rgba(6,182,212,0.08) 0%, transparent 50%), var(--gradient-1);">
-  <span class="section-number">02</span>
-  <span class="eyebrow reveal d1">Fundamentals</span>
-  <h2 class="reveal d2">UI vs UX</h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card">
-      <h3 style="color: var(--accent); font-size: 36px;">UI</h3>
-      <p style="font-size: 26px; color: var(--foreground); margin-top: 8px;">User Interface</p>
-      <p style="font-size: 22px; margin-top: 16px;">How the app <strong>LOOKS</strong></p>
-      <ul style="margin-top: 12px;">
-        <li style="font-size: 20px;">Colors, fonts, icons</li>
-        <li style="font-size: 20px;">Buttons, layouts</li>
-        <li style="font-size: 20px;">Spacing, alignment</li>
-        <li style="font-size: 20px;">Visual design</li>
-      </ul>
-    </div>
-    <div class="grid-card">
-      <h3 style="color: var(--accent-secondary); font-size: 36px;">UX</h3>
-      <p style="font-size: 26px; color: var(--foreground); margin-top: 8px;">User Experience</p>
-      <p style="font-size: 22px; margin-top: 16px;">How the app <strong>FEELS</strong></p>
-      <ul style="margin-top: 12px;">
-        <li style="font-size: 20px;">Easy navigation</li>
-        <li style="font-size: 20px;">Logical flow</li>
-        <li style="font-size: 20px;">Fast, intuitive</li>
-        <li style="font-size: 20px;">User satisfaction</li>
-      </ul>
-    </div>
-  </div>
+<span class="section-number">02</span>
+<span class="eyebrow reveal d1">Fundamentals</span>
+<h2 class="reveal d2">UI vs UX</h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card">
+<h3 style="color: var(--accent); font-size: 36px;">UI</h3>
+<p style="font-size: 26px; color: var(--foreground); margin-top: 8px;">User Interface</p>
+<p style="font-size: 22px; margin-top: 16px;">How the app <strong>LOOKS</strong></p>
+<ul style="margin-top: 12px;">
+<li style="font-size: 20px;">Colors, fonts, icons</li>
+<li style="font-size: 20px;">Buttons, layouts</li>
+<li style="font-size: 20px;">Spacing, alignment</li>
+<li style="font-size: 20px;">Visual design</li>
+</ul>
+</div>
+<div class="grid-card">
+<h3 style="color: var(--accent-secondary); font-size: 36px;">UX</h3>
+<p style="font-size: 26px; color: var(--foreground); margin-top: 8px;">User Experience</p>
+<p style="font-size: 22px; margin-top: 16px;">How the app <strong>FEELS</strong></p>
+<ul style="margin-top: 12px;">
+<li style="font-size: 20px;">Easy navigation</li>
+<li style="font-size: 20px;">Logical flow</li>
+<li style="font-size: 20px;">Fast, intuitive</li>
+<li style="font-size: 20px;">User satisfaction</li>
+</ul>
+</div>
+</div>
 </section>
-<section class="slide" data-ui-visual-gallery><span class="section-number">01</span><span class="eyebrow reveal d1">Visual Examples</span><h2 class="reveal d2">Same Content, <span class="highlight">Better Interface</span></h2><style data-ui-visual-gallery-style>.ui3-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:16px}.ui3-browser{background:#f8fbff;border:5px solid #0b1425;border-radius:10px;box-shadow:0 16px 30px rgba(0,0,0,.26);overflow:hidden}.ui3-top{align-items:center;background:#e7edf5;display:flex;gap:5px;height:28px;padding:0 10px}.ui3-top i{background:#bfccdc;border-radius:50%;height:7px;width:7px}.ui3-top span{background:#fff;border-radius:4px;color:#73859b;font-size:10px;margin-left:6px;padding:4px 12px}.ui3-good{display:grid;grid-template-columns:105px 1fr;min-height:310px}.ui3-nav{background:#15233b;color:#a9bad0;font-size:11px;padding:17px 12px}.ui3-nav strong{color:#fff;display:block;font-size:17px;margin-bottom:23px}.ui3-nav p{border-radius:5px;margin:8px 0;padding:7px}.ui3-nav p.active{background:#28466f;color:#fff}.ui3-main{background:#fff;padding:21px}.ui3-main small{color:#788ba1;font-size:11px}.ui3-main h3{color:#192943;font-size:22px;margin:4px 0 16px}.ui3-stats{display:grid;gap:9px;grid-template-columns:repeat(3,1fr)}.ui3-stats div{background:#f1f6fb;border-radius:6px;padding:10px}.ui3-stats span{color:#75869c;display:block;font-size:10px}.ui3-stats b{color:#1e71dd;display:block;font-size:21px;margin-top:5px}.ui3-list{border:1px solid #e1e9f2;border-radius:7px;margin-top:14px;padding:10px}.ui3-list p{border-top:1px solid #edf2f7;color:#334b69;font-size:11px;margin:7px 0 0;padding-top:7px}.ui3-list p:first-child{border-top:0;margin-top:0;padding-top:0}.ui3-bad{background:#fffdfb;min-height:310px;padding:21px}.ui3-bad h3{color:#202020;font-size:22px;margin:0 0 10px}.ui3-bad div{border:1px solid #ddd;color:#5b5b5b;font-size:12px;margin:7px 0;padding:9px}.ui3-bad .action{background:#ffea00;color:#333;font-weight:800;text-align:center}.ui3-caption{color:var(--muted-foreground);font-size:16px;margin:10px 0 0;text-align:center}.ui3-caption strong{color:var(--accent)}</style><div class="ui3-grid reveal d3"><div><div class="ui3-browser"><div class="ui3-top"><i></i><i></i><i></i><span>studyhub.app/dashboard</span></div><div class="ui3-good"><aside class="ui3-nav"><strong>StudyHub</strong><p class="active">Overview</p><p>Tasks</p><p>Calendar</p></aside><main class="ui3-main"><small>Good morning, Alex</small><h3>Your study dashboard</h3><div class="ui3-stats"><div><span>Tasks due</span><b>4</b></div><div><span>Completed</span><b>12</b></div><div><span>Focus time</span><b>3h</b></div></div><div class="ui3-list"><p>Database proposal &middot; Due tomorrow</p><p>UI wireframe review &middot; Today</p></div></main></div></div><p class="ui3-caption"><strong>Clear UI:</strong> groups related information and makes the next action obvious.</p></div><div><div class="ui3-browser"><div class="ui3-top"><i></i><i></i><i></i><span>studyhub.app/dashboard</span></div><div class="ui3-bad"><h3>WELCOME STUDENT DASHBOARD TASKS INFO CALENDAR</h3><div>Task: Database proposal tomorrow</div><div class="action">CLICK HERE NOW</div><div>12 completed &middot; 4 due &middot; 3 hours</div><div class="action">UPDATE TASKS</div><div>Calendar / Profile / Settings / Messages</div></div></div><p class="ui3-caption"><strong>Confusing UI:</strong> competes for attention and hides the user's priority.</p></div></div></section>
-
-<style data-ui3-layout-fix>
+<section class="slide" data-ui-visual-gallery=""><span class="section-number">01</span><span class="eyebrow reveal d1">Visual Examples</span><h2 class="reveal d2">Same Content, <span class="highlight">Better Interface</span></h2><style data-ui-visual-gallery-style="">.ui3-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:16px}.ui3-browser{background:#f8fbff;border:5px solid #0b1425;border-radius:10px;box-shadow:0 16px 30px rgba(0,0,0,.26);overflow:hidden}.ui3-top{align-items:center;background:#e7edf5;display:flex;gap:5px;height:28px;padding:0 10px}.ui3-top i{background:#bfccdc;border-radius:50%;height:7px;width:7px}.ui3-top span{background:#fff;border-radius:4px;color:#73859b;font-size:10px;margin-left:6px;padding:4px 12px}.ui3-good{display:grid;grid-template-columns:105px 1fr;min-height:310px}.ui3-nav{background:#15233b;color:#a9bad0;font-size:11px;padding:17px 12px}.ui3-nav strong{color:#fff;display:block;font-size:17px;margin-bottom:23px}.ui3-nav p{border-radius:5px;margin:8px 0;padding:7px}.ui3-nav p.active{background:#28466f;color:#fff}.ui3-main{background:#fff;padding:21px}.ui3-main small{color:#788ba1;font-size:11px}.ui3-main h3{color:#192943;font-size:22px;margin:4px 0 16px}.ui3-stats{display:grid;gap:9px;grid-template-columns:repeat(3,1fr)}.ui3-stats div{background:#f1f6fb;border-radius:6px;padding:10px}.ui3-stats span{color:#75869c;display:block;font-size:10px}.ui3-stats b{color:#1e71dd;display:block;font-size:21px;margin-top:5px}.ui3-list{border:1px solid #e1e9f2;border-radius:7px;margin-top:14px;padding:10px}.ui3-list p{border-top:1px solid #edf2f7;color:#334b69;font-size:11px;margin:7px 0 0;padding-top:7px}.ui3-list p:first-child{border-top:0;margin-top:0;padding-top:0}.ui3-bad{background:#fffdfb;min-height:310px;padding:21px}.ui3-bad h3{color:#202020;font-size:22px;margin:0 0 10px}.ui3-bad div{border:1px solid #ddd;color:#5b5b5b;font-size:12px;margin:7px 0;padding:9px}.ui3-bad .action{background:#ffea00;color:#333;font-weight:800;text-align:center}.ui3-caption{color:var(--muted-foreground);font-size:16px;margin:10px 0 0;text-align:center}.ui3-caption strong{color:var(--accent)}</style><div class="ui3-grid reveal d3"><div><div class="ui3-browser"><div class="ui3-top"><i></i><i></i><i></i><span>studyhub.app/dashboard</span></div><div class="ui3-good"><aside class="ui3-nav"><strong>StudyHub</strong><p class="active">Overview</p><p>Tasks</p><p>Calendar</p></aside><main class="ui3-main"><small>Good morning, Alex</small><h3>Your study dashboard</h3><div class="ui3-stats"><div><span>Tasks due</span><b>4</b></div><div><span>Completed</span><b>12</b></div><div><span>Focus time</span><b>3h</b></div></div><div class="ui3-list"><p>Database proposal · Due tomorrow</p><p>UI wireframe review · Today</p></div></main></div></div><p class="ui3-caption"><strong>Clear UI:</strong> groups related information and makes the next action obvious.</p></div><div><div class="ui3-browser"><div class="ui3-top"><i></i><i></i><i></i><span>studyhub.app/dashboard</span></div><div class="ui3-bad"><h3>WELCOME STUDENT DASHBOARD TASKS INFO CALENDAR</h3><div>Task: Database proposal tomorrow</div><div class="action">CLICK HERE NOW</div><div>12 completed · 4 due · 3 hours</div><div class="action">UPDATE TASKS</div><div>Calendar / Profile / Settings / Messages</div></div></div><p class="ui3-caption"><strong>Confusing UI:</strong> competes for attention and hides the user's priority.</p></div></div></section>
+<style data-ui3-layout-fix="">
   .ui3-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
   .ui3-grid > div { min-width:0; }
   .ui3-good { grid-template-columns:145px minmax(0,1fr) !important; }
@@ -1562,881 +1604,647 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   .ui3-nav p { font-size:14px !important; line-height:1.2 !important; padding:8px 10px !important; white-space:nowrap; }
   .ui3-main { min-width:0; }
 </style>
-
 <!-- SLIDE 4: Restaurant Analogy -->
 <section class="slide">
-  <span class="section-number">02</span>
-  <span class="eyebrow reveal d1">Analogy</span>
-  <h2 class="reveal d2">The Restaurant Analogy</h2>
-  <div class="purple-card reveal d3">
-    <p style="font-size: 28px; color: var(--foreground); line-height: 1.8;">
-      <strong class="highlight">UI</strong> = How the restaurant looks: decor, plates, menu design, lighting<br><br>
-      <strong class="highlight-cyan">UX</strong> = The whole experience: how quickly you're seated, how easy the menu is to read, how fast food arrives, how you feel when you leave
+<span class="section-number">02</span>
+<span class="eyebrow reveal d1">Analogy</span>
+<h2 class="reveal d2">The Restaurant Analogy</h2>
+<div class="purple-card reveal d3">
+<p style="font-size: 28px; color: var(--foreground); line-height: 1.8;">
+<strong class="highlight">UI</strong> = How the restaurant looks: decor, plates, menu design, lighting<br/><br/>
+<strong class="highlight-cyan">UX</strong> = The whole experience: how quickly you're seated, how easy the menu is to read, how fast food arrives, how you feel when you leave
     </p>
-    <p style="margin-top: 20px; font-size: 24px;">A beautiful restaurant (good UI) with terrible service (bad UX) still fails. You need BOTH.</p>
-  </div>
+<p style="margin-top: 20px; font-size: 24px;">A beautiful restaurant (good UI) with terrible service (bad UX) still fails. You need BOTH.</p>
+</div>
 </section>
-
 <!-- STUDENT EXPLAINER: UI and UX connection -->
 <section class="slide">
-  <span class="section-number">02</span>
-  <span class="eyebrow reveal d1">One User Task</span>
-  <h2 class="reveal d2">UI presents the choices; UX shapes the <span class="highlight">journey</span></h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card">
-      <h3 style="color:var(--accent);">UI decisions</h3>
-      <ul style="margin-top:14px;gap:14px;">
-        <li style="font-size:22px;">Is the main button easy to notice?</li>
-        <li style="font-size:22px;">Are labels and icons understandable?</li>
-        <li style="font-size:22px;">Is the text readable?</li>
-      </ul>
-    </div>
-    <div class="grid-card">
-      <h3 style="color:var(--accent-secondary);">UX decisions</h3>
-      <ul style="margin-top:14px;gap:14px;">
-        <li style="font-size:22px;">Are the steps in a logical order?</li>
-        <li style="font-size:22px;">Does the app explain errors clearly?</li>
-        <li style="font-size:22px;">Can the user recover or go back?</li>
-      </ul>
-    </div>
-  </div>
-  <p class="reveal d4" style="margin-top:22px;">A polished screen can still create a poor experience if the task is confusing, slow, or unforgiving.</p>
+<span class="section-number">02</span>
+<span class="eyebrow reveal d1">One User Task</span>
+<h2 class="reveal d2">UI presents the choices; UX shapes the <span class="highlight">journey</span></h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card">
+<h3 style="color:var(--accent);">UI decisions</h3>
+<ul style="margin-top:14px;gap:14px;">
+<li style="font-size:22px;">Is the main button easy to notice?</li>
+<li style="font-size:22px;">Are labels and icons understandable?</li>
+<li style="font-size:22px;">Is the text readable?</li>
+</ul>
+</div>
+<div class="grid-card">
+<h3 style="color:var(--accent-secondary);">UX decisions</h3>
+<ul style="margin-top:14px;gap:14px;">
+<li style="font-size:22px;">Are the steps in a logical order?</li>
+<li style="font-size:22px;">Does the app explain errors clearly?</li>
+<li style="font-size:22px;">Can the user recover or go back?</li>
+</ul>
+</div>
+</div>
+<p class="reveal d4" style="margin-top:22px;">A polished screen can still create a poor experience if the task is confusing, slow, or unforgiving.</p>
 </section>
-
 <!-- SLIDE 5: Why UI/UX Matters -->
 <section class="slide">
-  <span class="section-number">02</span>
-  <span class="eyebrow reveal d1">Why It Matters</span>
-  <h2 class="reveal d2">Good design helps users act with <span class="highlight-cyan">confidence</span></h2>
-  <div class="grid-3 reveal d3">
-    <div class="grid-card"><h3 style="font-size:28px;color:var(--accent);">Understand</h3><p style="font-size:21px;margin-top:12px;">Users can quickly recognize the screen's purpose and available actions.</p></div>
-    <div class="grid-card"><h3 style="font-size:28px;color:var(--accent-secondary);">Complete</h3><p style="font-size:21px;margin-top:12px;">Clear steps, feedback, and error handling help users finish their task.</p></div>
-    <div class="grid-card"><h3 style="font-size:28px;color:var(--accent);">Trust</h3><p style="font-size:21px;margin-top:12px;">Consistency and readable information make the app feel dependable.</p></div>
-  </div>
-  <p class="reveal d4" style="margin-top:24px;">The goal is not decoration. The goal is to reduce confusion and support the user's purpose.</p>
+<span class="section-number">02</span>
+<span class="eyebrow reveal d1">Why It Matters</span>
+<h2 class="reveal d2">Good design helps users act with <span class="highlight-cyan">confidence</span></h2>
+<div class="grid-3 reveal d3">
+<div class="grid-card"><h3 style="font-size:28px;color:var(--accent);">Understand</h3><p style="font-size:21px;margin-top:12px;">Users can quickly recognize the screen's purpose and available actions.</p></div>
+<div class="grid-card"><h3 style="font-size:28px;color:var(--accent-secondary);">Complete</h3><p style="font-size:21px;margin-top:12px;">Clear steps, feedback, and error handling help users finish their task.</p></div>
+<div class="grid-card"><h3 style="font-size:28px;color:var(--accent);">Trust</h3><p style="font-size:21px;margin-top:12px;">Consistency and readable information make the app feel dependable.</p></div>
+</div>
+<p class="reveal d4" style="margin-top:24px;">The goal is not decoration. The goal is to reduce confusion and support the user's purpose.</p>
 </section>
-
 <!-- SLIDE 6: The 4 Design Principles -->
 <section class="slide">
-  <span class="section-number">03</span>
-  <span class="eyebrow reveal d1">C.A.R.P.</span>
-  <h2 class="reveal d2">4 Core Design <span class="highlight">Principles</span></h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 48px; margin-bottom: 8px;">C</h3>
-      <p style="font-size: 26px; color: var(--foreground);"><strong>Contrast</strong></p>
-      <p style="font-size: 20px;">Make important things stand out</p>
-    </div>
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 48px; margin-bottom: 8px;">A</h3>
-      <p style="font-size: 26px; color: var(--foreground);"><strong>Alignment</strong></p>
-      <p style="font-size: 20px;">Everything connected visually</p>
-    </div>
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 48px; margin-bottom: 8px;">R</h3>
-      <p style="font-size: 26px; color: var(--foreground);"><strong>Repetition</strong></p>
-      <p style="font-size: 20px;">Consistent patterns throughout</p>
-    </div>
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 48px; margin-bottom: 8px;">P</h3>
-      <p style="font-size: 26px; color: var(--foreground);"><strong>Proximity</strong></p>
-      <p style="font-size: 20px;">Related items grouped together</p>
-    </div>
-  </div>
+<span class="section-number">03</span>
+<span class="eyebrow reveal d1">C.A.R.P.</span>
+<h2 class="reveal d2">4 Core Design <span class="highlight">Principles</span></h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 48px; margin-bottom: 8px;">C</h3>
+<p style="font-size: 26px; color: var(--foreground);"><strong>Contrast</strong></p>
+<p style="font-size: 20px;">Make important things stand out</p>
+</div>
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 48px; margin-bottom: 8px;">A</h3>
+<p style="font-size: 26px; color: var(--foreground);"><strong>Alignment</strong></p>
+<p style="font-size: 20px;">Everything connected visually</p>
+</div>
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 48px; margin-bottom: 8px;">R</h3>
+<p style="font-size: 26px; color: var(--foreground);"><strong>Repetition</strong></p>
+<p style="font-size: 20px;">Consistent patterns throughout</p>
+</div>
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 48px; margin-bottom: 8px;">P</h3>
+<p style="font-size: 26px; color: var(--foreground);"><strong>Proximity</strong></p>
+<p style="font-size: 20px;">Related items grouped together</p>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 7: Contrast -->
 <section class="slide">
-  <span class="section-number">03</span>
-  <span class="eyebrow reveal d1">Principle 1</span>
-  <h2 class="reveal d2"><span class="highlight">Contrast</span></h2>
-  <div class="principle-box reveal d3">
-    <div>
-      <p style="font-size: 26px; color: var(--foreground);">Make different things look <strong>DIFFERENT</strong>.</p>
-      <ul style="margin-top: 16px;">
-        <li style="font-size: 22px;">Big headings vs small body text</li>
-        <li style="font-size: 22px;">Bold vs light weight</li>
-        <li style="font-size: 22px;">Dark text on light background</li>
-        <li style="font-size: 22px;">Colored buttons vs plain text</li>
-      </ul>
-      <p style="margin-top: 16px; font-size: 22px; color: var(--accent);">Rule: If things are not the same, make them VERY different. No "kinda different."</p>
-    </div>
-    <div style="text-align: center;">
-      <div style="margin-bottom: 20px;">
-        <span style="font-size: 20px; color: var(--muted-foreground);">❌ Low Contrast</span><br>
-        <span style="font-size: 28px; color: rgba(240,238,246,0.4);">Title Here</span><br>
-        <span style="font-size: 24px; color: rgba(240,238,246,0.35);">Body text here</span>
-      </div>
-      <div>
-        <span style="font-size: 20px; color: var(--accent);">✅ High Contrast</span><br>
-        <span style="font-size: 40px; font-family: var(--font-display); color: var(--foreground);">Title Here</span><br>
-        <span style="font-size: 22px; color: var(--muted-foreground);">Body text here</span>
-      </div>
-    </div>
-  </div>
+<span class="section-number">03</span>
+<span class="eyebrow reveal d1">Principle 1 · Visual Example</span>
+<h2 class="reveal d2"><span class="highlight">Contrast</span> Makes Priority Visible</h2>
+<div class="principle-demo reveal d3">
+<div class="principle-guide">
+<div>
+<p style="color:var(--foreground);"><strong>Contrast</strong> separates important elements from supporting information.</p>
+<ul>
+<li>Different text sizes create hierarchy</li>
+<li>Primary actions need stronger color</li>
+<li>Text must separate from its background</li>
+<li>Not everything should demand attention</li>
+</ul>
+</div>
+<p class="principle-rule"><strong>Look first:</strong> Can you immediately find the page title and main button?</p>
+</div>
+<div class="mockup-example bad">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>campusconnect.app</span></div>
+<div class="mockup-canvas contrast-app contrast-low">
+<div class="mini-brand">CAMPUS CONNECT</div>
+<div class="hero"><h3>Report a Lost Item</h3><p>Help classmates identify and return belongings found around campus.</p><button>Start Report</button></div>
+<div class="stats"><div><small>Open</small><b>18</b></div><div><small>Found</small><b>42</b></div><div><small>Claimed</small><b>31</b></div></div>
+</div>
+<div class="mockup-caption"><strong>Weak contrast</strong><p>Title, paragraph, button, and background blend into one visual level.</p></div>
+</div>
+<div class="mockup-example good">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>campusconnect.app</span></div>
+<div class="mockup-canvas contrast-app contrast-strong">
+<div class="mini-brand">CAMPUS CONNECT</div>
+<div class="hero"><h3>Report a Lost Item</h3><p>Help classmates identify and return belongings found around campus.</p><button>Start Report</button></div>
+<div class="stats"><div><small>Open reports</small><b>18</b></div><div><small>Items found</small><b>42</b></div><div><small>Items claimed</small><b>31</b></div></div>
+</div>
+<div class="mockup-caption"><strong>Strong contrast</strong><p>The dark hero, white heading, and purple action establish a clear reading order.</p></div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 8: Alignment -->
 <section class="slide">
-  <span class="section-number">03</span>
-  <span class="eyebrow reveal d1">Principle 2</span>
-  <h2 class="reveal d2"><span class="highlight">Alignment</span></h2>
-  <div class="principle-box reveal d3">
-    <div>
-      <p style="font-size: 26px; color: var(--foreground);">Every element should be <strong>visually connected</strong> to something else.</p>
-      <ul style="margin-top: 16px;">
-        <li style="font-size: 22px;">Left-align text (most common)</li>
-        <li style="font-size: 22px;">Align elements to a grid</li>
-        <li style="font-size: 22px;">Center-align sparingly (titles only)</li>
-        <li style="font-size: 22px;">Never mix alignments randomly</li>
-      </ul>
-      <p style="margin-top: 16px; font-size: 22px; color: var(--accent);">Rule: Nothing should look randomly placed.</p>
-    </div>
-    <div style="text-align: center;">
-      <div style="margin-bottom: 20px; text-align: left; padding: 16px; border: 1px dashed rgba(239,68,68,0.3); border-radius: 8px;">
-        <span style="font-size: 18px; color: #ef4444;">❌ Random alignment</span><br>
-        <span style="font-size: 22px; display: block; text-align: left;">Title</span>
-        <span style="font-size: 18px; display: block; text-align: center;">description here</span>
-        <span style="font-size: 18px; display: block; text-align: right;">button</span>
-      </div>
-      <div style="text-align: left; padding: 16px; border: 1px dashed rgba(34,197,94,0.3); border-radius: 8px;">
-        <span style="font-size: 18px; color: #22c55e;">✅ Consistent alignment</span><br>
-        <span style="font-size: 22px; display: block;">Title</span>
-        <span style="font-size: 18px; display: block;">Description here</span>
-        <span style="font-size: 18px; display: block; margin-top: 8px; color: var(--accent);">Button →</span>
-      </div>
-    </div>
-  </div>
+<span class="section-number">03</span>
+<span class="eyebrow reveal d1">Principle 2 · Visual Example</span>
+<h2 class="reveal d2"><span class="highlight">Alignment</span> Creates Invisible Structure</h2>
+<div class="principle-demo reveal d3">
+<div class="principle-guide">
+<div>
+<p style="color:var(--foreground);"><strong>Alignment</strong> makes elements feel intentionally connected.</p>
+<ul>
+<li>Use common left and right edges</li>
+<li>Build forms with a visible grid</li>
+<li>Keep related controls on one line</li>
+<li>Avoid random centering and offsets</li>
+</ul>
+</div>
+<p class="principle-rule"><strong>Designer check:</strong> Can you draw clean vertical and horizontal lines through the layout?</p>
+</div>
+<div class="mockup-example bad">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>studentportal.app/profile</span></div>
+<div class="mockup-canvas align-app align-bad">
+<div class="align-title">Edit Profile</div><div class="align-sub">Update your student information</div>
+<div class="align-form"><div class="align-row"><label>FULL NAME</label><div class="align-input"></div></div><div class="align-row"><label>EMAIL ADDRESS</label><div class="align-input"></div></div><div class="align-row"><label>PROGRAM</label><div class="align-input"></div></div><div class="align-actions"><button>Cancel</button><button>Save changes</button></div></div>
+</div>
+<div class="mockup-caption"><strong>Random alignment</strong><p>Fields, labels, heading, and actions follow different edges, so the form feels unstable.</p></div>
+</div>
+<div class="mockup-example good">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>studentportal.app/profile</span></div>
+<div class="mockup-canvas align-app align-good">
+<aside><strong>StudentHub</strong><span>Dashboard</span><span class="active">Profile</span><span>Settings</span></aside>
+<main><div class="align-title">Edit Profile</div><div class="align-sub">Update your student information</div><div class="align-form"><div class="align-row"><label>FULL NAME</label><div class="align-input"></div></div><div class="align-row"><label>EMAIL ADDRESS</label><div class="align-input"></div></div><div class="align-row full"><label>PROGRAM</label><div class="align-input"></div></div><div class="align-actions"><button>Cancel</button><button>Save changes</button></div></div></main>
+</div>
+<div class="mockup-caption"><strong>Grid alignment</strong><p>Shared edges, equal field widths, and aligned actions make the form easier to scan.</p></div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 9: Repetition -->
 <section class="slide">
-  <span class="section-number">03</span>
-  <span class="eyebrow reveal d1">Principle 3</span>
-  <h2 class="reveal d2"><span class="highlight">Repetition</span></h2>
-  <div class="purple-card reveal d3">
-    <p style="font-size: 26px; color: var(--foreground);">Repeat visual elements throughout your app for <strong>consistency</strong>.</p>
-    <div class="grid-2" style="margin-top: 20px;">
-      <div>
-        <p style="font-size: 22px; color: var(--accent); font-weight: 600;">Repeat these:</p>
-        <ul style="margin-top: 8px;">
-          <li style="font-size: 20px;">Same <button style everywhere</li>
-          <li style="font-size: 20px;">Same font for all headings</li>
-          <li style="font-size: 20px;">Same spacing pattern</li>
-          <li style="font-size: 20px;">Same color for all links</li>
-          <li style="font-size: 20px;">Same card design for similar items</li>
-        </ul>
-      </div>
-      <div>
-        <p style="font-size: 22px; color: var(--accent-secondary); font-weight: 600;">Why it works:</p>
-        <ul style="margin-top: 8px;">
-          <li style="font-size: 20px;">Creates visual unity</li>
-          <li style="font-size: 20px;">Users learn patterns fast</li>
-          <li style="font-size: 20px;">Looks professional</li>
-          <li style="font-size: 20px;">Reduces confusion</li>
-          <li style="font-size: 20px;">Easier to build (reuse components!)</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+<span class="section-number">03</span>
+<span class="eyebrow reveal d1">Principle 3 · Visual Example</span>
+<h2 class="reveal d2"><span class="highlight">Repetition</span> Teaches the Interface</h2>
+<div class="principle-demo reveal d3">
+<div class="principle-guide">
+<div>
+<p style="color:var(--foreground);"><strong>Repetition</strong> turns one design decision into a reusable pattern.</p>
+<ul>
+<li>Same card shape for similar content</li>
+<li>Same button style for the same action</li>
+<li>Same heading and spacing system</li>
+<li>Reuse components instead of redesigning</li>
+</ul>
+</div>
+<p class="principle-rule"><strong>User benefit:</strong> Once users understand one card, they understand every similar card.</p>
+</div>
+<div class="mockup-example bad">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>learnspace.app/courses</span></div>
+<div class="mockup-canvas repeat-app repeat-bad"><div class="repeat-head"><strong>My Courses</strong><button>ADD COURSE</button></div><div class="repeat-grid"><div class="course-card"><div class="icon">DB</div><h4>Database Systems</h4><p>6 lessons remaining</p><a href="#">Continue</a></div><div class="course-card"><div class="icon">UX</div><h4>UI/UX Basics</h4><p>2 activities due</p><a href="#">OPEN NOW</a></div><div class="course-card"><div class="icon">JS</div><h4>Java Programming</h4><p>4 exercises remaining</p><a href="#">Resume</a></div><div class="course-card"><div class="icon">WEB</div><h4>Web Development</h4><p>Project due Friday</p><a href="#">View class</a></div></div></div>
+<div class="mockup-caption"><strong>Inconsistent patterns</strong><p>Each card uses a different shape, color, font, and link treatment.</p></div>
+</div>
+<div class="mockup-example good">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>learnspace.app/courses</span></div>
+<div class="mockup-canvas repeat-app repeat-good"><div class="repeat-head"><strong>My Courses</strong><button>Add course</button></div><div class="repeat-grid"><div class="course-card"><div class="icon">DB</div><h4>Database Systems</h4><p>6 lessons remaining</p><a href="#">Continue →</a></div><div class="course-card"><div class="icon">UX</div><h4>UI/UX Basics</h4><p>2 activities due</p><a href="#">Continue →</a></div><div class="course-card"><div class="icon">JS</div><h4>Java Programming</h4><p>4 exercises remaining</p><a href="#">Continue →</a></div><div class="course-card"><div class="icon">WEB</div><h4>Web Development</h4><p>Project due Friday</p><a href="#">Continue →</a></div></div></div>
+<div class="mockup-caption"><strong>Repeated system</strong><p>Cards share one component style, so content changes without changing behavior.</p></div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 10: Proximity -->
 <section class="slide">
-  <span class="section-number">03</span>
-  <span class="eyebrow reveal d1">Principle 4</span>
-  <h2 class="reveal d2"><span class="highlight">Proximity</span></h2>
-  <div class="principle-box reveal d3">
-    <div>
-      <p style="font-size: 26px; color: var(--foreground);">Related items should be <strong>grouped together</strong>. Unrelated items should have space between them.</p>
-      <ul style="margin-top: 16px;">
-        <li style="font-size: 22px;">Form label CLOSE to its input</li>
-        <li style="font-size: 22px;">Title CLOSE to its description</li>
-        <li style="font-size: 22px;">Group related buttons together</li>
-        <li style="font-size: 22px;">Separate different sections with space</li>
-      </ul>
-      <p style="margin-top: 16px; font-size: 22px; color: var(--accent);">Rule: Proximity implies relationship.</p>
-    </div>
-    <div style="text-align: center;">
-      <div style="padding: 16px; border: 1px dashed rgba(34,197,94,0.3); border-radius: 8px; text-align: left;">
-        <span style="font-size: 18px; color: #22c55e;">✅ Good proximity</span><br><br>
-        <span style="font-size: 18px; color: var(--accent);">Name</span><br>
-        <span style="font-size: 18px; display: inline-block; border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; margin-bottom: 16px;">John Doe</span><br>
-        <br>
-        <span style="font-size: 18px; color: var(--accent);">Email</span><br>
-        <span style="font-size: 18px; display: inline-block; border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px;">john@email.com</span>
-      </div>
-    </div>
-  </div>
+<span class="section-number">03</span>
+<span class="eyebrow reveal d1">Principle 4 · Visual Example</span>
+<h2 class="reveal d2"><span class="highlight">Proximity</span> Shows What Belongs Together</h2>
+<div class="principle-demo reveal d3">
+<div class="principle-guide">
+<div>
+<p style="color:var(--foreground);"><strong>Proximity</strong> uses distance to communicate relationships.</p>
+<ul>
+<li>Keep labels close to their inputs</li>
+<li>Group totals inside one summary area</li>
+<li>Place the action near the decision</li>
+<li>Use more space between separate sections</li>
+</ul>
+</div>
+<p class="principle-rule"><strong>Simple rule:</strong> Close means related. Farther apart means a new group or section.</p>
+</div>
+<div class="mockup-example bad">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>campusstore.app/checkout</span></div>
+<div class="mockup-canvas proximity-app proximity-bad"><h3>Complete Payment</h3><p>Enter your details and confirm your order.</p><div class="checkout-panel"><label>NAME ON CARD</label><div class="checkout-input"></div><label>CARD NUMBER</label><div class="checkout-input"></div><div class="summary-line subtotal"><span>Subtotal</span><b>₱720</b></div><div class="summary-line fee"><span>Service fee</span><b>₱30</b></div><div class="summary-line total"><span>Total</span><b>₱750</b></div><button class="pay-btn">Pay now</button></div></div>
+<div class="mockup-caption"><strong>Weak proximity</strong><p>Labels, fields, totals, and the payment action are separated from the items they explain.</p></div>
+</div>
+<div class="mockup-example good">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>campusstore.app/checkout</span></div>
+<div class="mockup-canvas proximity-app proximity-good"><h3>Complete Payment</h3><p>Enter your details and confirm your order.</p><div class="checkout-panel"><div class="field-group"><label>NAME ON CARD</label><div class="checkout-input"></div></div><div class="field-group"><label>CARD NUMBER</label><div class="checkout-input"></div></div><div class="order-summary"><div class="summary-line"><span>Subtotal</span><b>₱720</b></div><div class="summary-line"><span>Service fee</span><b>₱30</b></div><div class="summary-line total"><span>Total</span><b>₱750</b></div></div><button class="pay-btn">Pay ₱750</button></div></div>
+<div class="mockup-caption"><strong>Clear grouping</strong><p>Each label sits with its field, while price details form one summary before the action.</p></div>
+</div>
+</div>
 </section>
-
 <!-- STUDENT EXPLAINER: CARP together -->
 <section class="slide">
-  <span class="section-number">03</span>
-  <span class="eyebrow reveal d1">Worked Example</span>
-  <h2 class="reveal d2">CARP principles work <span class="highlight">together</span> on one form</h2>
-  <div class="purple-card reveal d3">
-    <p style="font-size:24px;color:var(--foreground);"><strong class="highlight">Contrast:</strong> the Submit button is visually stronger than Cancel.</p>
-    <p style="font-size:24px;margin-top:14px;"><strong class="highlight-cyan">Alignment:</strong> labels, fields, and buttons share the same left edge.</p>
-    <p style="font-size:24px;margin-top:14px;"><strong class="highlight">Repetition:</strong> every field uses the same label style, border, and spacing.</p>
-    <p style="font-size:24px;margin-top:14px;"><strong class="highlight-cyan">Proximity:</strong> each label sits close to its field, while different sections have more space.</p>
-  </div>
-  <p class="reveal d4" style="margin-top:22px;">The principles are not separate decorations; together they make the form easier to scan and complete.</p>
+<span class="section-number">03</span>
+<span class="eyebrow reveal d1">Worked Example</span>
+<h2 class="reveal d2">CARP principles work <span class="highlight">together</span> on one form</h2>
+<div class="purple-card reveal d3">
+<p style="font-size:24px;color:var(--foreground);"><strong class="highlight">Contrast:</strong> the Submit button is visually stronger than Cancel.</p>
+<p style="font-size:24px;margin-top:14px;"><strong class="highlight-cyan">Alignment:</strong> labels, fields, and buttons share the same left edge.</p>
+<p style="font-size:24px;margin-top:14px;"><strong class="highlight">Repetition:</strong> every field uses the same label style, border, and spacing.</p>
+<p style="font-size:24px;margin-top:14px;"><strong class="highlight-cyan">Proximity:</strong> each label sits close to its field, while different sections have more space.</p>
+</div>
+<p class="reveal d4" style="margin-top:22px;">The principles are not separate decorations; together they make the form easier to scan and complete.</p>
 </section>
-
 <!-- SLIDE 12: Color Theory -->
 <section class="slide">
-  <span class="section-number">04</span>
-  <span class="eyebrow reveal d1">Color</span>
-  <h2 class="reveal d2">Color <span class="highlight">Theory</span> Basics</h2>
-  <div class="grid-3 reveal d3">
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 24px; color: var(--accent);">Primary Color</h3>
-      <p style="font-size: 20px;">Your brand color. Used for buttons, links, highlights.</p>
-      <div style="margin-top: 12px;">
-        <span class="color-swatch" style="background: #a855f7;"></span>
-      </div>
-    </div>
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 24px; color: var(--accent-secondary);">Secondary Color</h3>
-      <p style="font-size: 20px;">Complement. Used for accents, secondary actions.</p>
-      <div style="margin-top: 12px;">
-        <span class="color-swatch" style="background: #06b6d4;"></span>
-      </div>
-    </div>
-    <div class="grid-card" style="text-align: center;">
-      <h3 style="font-size: 24px; color: var(--muted-foreground);">Neutral Colors</h3>
-      <p style="font-size: 20px;">Background, text, borders. Black, white, gray.</p>
-      <div style="margin-top: 12px;">
-        <span class="color-swatch" style="background: #1a1a2e;"></span>
-        <span class="color-swatch" style="background: #6b7280;"></span>
-        <span class="color-swatch" style="background: #f3f4f6;"></span>
-      </div>
-    </div>
-  </div>
+<span class="section-number">04</span>
+<span class="eyebrow reveal d1">Color</span>
+<h2 class="reveal d2">Color <span class="highlight">Theory</span> Basics</h2>
+<div class="grid-3 reveal d3">
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 24px; color: var(--accent);">Primary Color</h3>
+<p style="font-size: 20px;">Your brand color. Used for buttons, links, highlights.</p>
+<div style="margin-top: 12px;">
+<span class="color-swatch" style="background: #a855f7;"></span>
+</div>
+</div>
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 24px; color: var(--accent-secondary);">Secondary Color</h3>
+<p style="font-size: 20px;">Complement. Used for accents, secondary actions.</p>
+<div style="margin-top: 12px;">
+<span class="color-swatch" style="background: #06b6d4;"></span>
+</div>
+</div>
+<div class="grid-card" style="text-align: center;">
+<h3 style="font-size: 24px; color: var(--muted-foreground);">Neutral Colors</h3>
+<p style="font-size: 20px;">Background, text, borders. Black, white, gray.</p>
+<div style="margin-top: 12px;">
+<span class="color-swatch" style="background: #1a1a2e;"></span>
+<span class="color-swatch" style="background: #6b7280;"></span>
+<span class="color-swatch" style="background: #f3f4f6;"></span>
+</div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 13: Color Psychology -->
 <section class="slide">
-  <span class="section-number">04</span>
-  <span class="eyebrow reveal d1">Color Meaning</span>
-  <h2 class="reveal d2">Colors Have <span class="highlight">Meaning</span></h2>
-  <table class="reveal d3">
-    <tr><th>Color</th><th>Feeling</th><th>Used For</th></tr>
-    <tr><td><span class="color-swatch" style="background:#3b82f6;width:30px;height:30px;vertical-align:middle;"></span> Blue</td><td>Trust, calm, professional</td><td>Facebook, LinkedIn, banks</td></tr>
-    <tr><td><span class="color-swatch" style="background:#22c55e;width:30px;height:30px;vertical-align:middle;"></span> Green</td><td>Growth, success, money</td><td>GCash, Grab, success states</td></tr>
-    <tr><td><span class="color-swatch" style="background:#ef4444;width:30px;height:30px;vertical-align:middle;"></span> Red</td><td>Urgency, error, danger</td><td>Notifications, errors, delete</td></tr>
-    <tr><td><span class="color-swatch" style="background:#f59e0b;width:30px;height:30px;vertical-align:middle;"></span> Yellow/Orange</td><td>Energy, warning, fun</td><td>Warnings, CTAs, food apps</td></tr>
-    <tr><td><span class="color-swatch" style="background:#8b5cf6;width:30px;height:30px;vertical-align:middle;"></span> Purple</td><td>Creativity, premium</td><td>Creative apps, premium features</td></tr>
-  </table>
+<span class="section-number">04</span>
+<span class="eyebrow reveal d1">Color Meaning</span>
+<h2 class="reveal d2">Colors Have <span class="highlight">Meaning</span></h2>
+<table class="reveal d3">
+<tr><th>Color</th><th>Feeling</th><th>Used For</th></tr>
+<tr><td><span class="color-swatch" style="background:#3b82f6;width:30px;height:30px;vertical-align:middle;"></span> Blue</td><td>Trust, calm, professional</td><td>Facebook, LinkedIn, banks</td></tr>
+<tr><td><span class="color-swatch" style="background:#22c55e;width:30px;height:30px;vertical-align:middle;"></span> Green</td><td>Growth, success, money</td><td>GCash, Grab, success states</td></tr>
+<tr><td><span class="color-swatch" style="background:#ef4444;width:30px;height:30px;vertical-align:middle;"></span> Red</td><td>Urgency, error, danger</td><td>Notifications, errors, delete</td></tr>
+<tr><td><span class="color-swatch" style="background:#f59e0b;width:30px;height:30px;vertical-align:middle;"></span> Yellow/Orange</td><td>Energy, warning, fun</td><td>Warnings, CTAs, food apps</td></tr>
+<tr><td><span class="color-swatch" style="background:#8b5cf6;width:30px;height:30px;vertical-align:middle;"></span> Purple</td><td>Creativity, premium</td><td>Creative apps, premium features</td></tr>
+</table>
 </section>
-
 <!-- SLIDE 14: Color Palette Rule -->
 <section class="slide">
-  <span class="section-number">04</span>
-  <span class="eyebrow reveal d1">Palette Rule</span>
-  <h2 class="reveal d2">The 60-30-10 Rule</h2>
-  <div class="purple-card reveal d3">
-    <p style="font-size: 28px; color: var(--foreground); line-height: 1.8;">
-      <strong class="highlight" style="font-size: 36px;">60%</strong> — Dominant color (background, large areas)<br>
-      <strong class="highlight-cyan" style="font-size: 36px;">30%</strong> — Secondary color (cards, sections, text)<br>
-      <strong style="color: #f59e0b; font-size: 36px;">10%</strong> — Accent color (buttons, links, highlights)
+<span class="section-number">04</span>
+<span class="eyebrow reveal d1">Palette Rule</span>
+<h2 class="reveal d2">The 60-30-10 Rule</h2>
+<div class="purple-card reveal d3">
+<p style="font-size: 28px; color: var(--foreground); line-height: 1.8;">
+<strong class="highlight" style="font-size: 36px;">60%</strong> — Dominant color (background, large areas)<br/>
+<strong class="highlight-cyan" style="font-size: 36px;">30%</strong> — Secondary color (cards, sections, text)<br/>
+<strong style="color: #f59e0b; font-size: 36px;">10%</strong> — Accent color (buttons, links, highlights)
     </p>
-    <p style="margin-top: 20px; font-size: 22px;">This creates visual balance. Too many colors = chaotic. Too few = boring. 3-4 colors max for most apps.</p>
-  </div>
+<p style="margin-top: 20px; font-size: 22px;">This creates visual balance. Too many colors = chaotic. Too few = boring. 3-4 colors max for most apps.</p>
+</div>
 </section>
-
 <!-- SLIDE 15: Choosing a Palette -->
 <section class="slide">
-  <span class="section-number">04</span>
-  <span class="eyebrow reveal d1">Tools</span>
-  <h2 class="reveal d2">Where to Get <span class="highlight">Color Palettes</span></h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent);">Free Tools</h3>
-      <ul style="margin-top: 12px;">
-        <li style="font-size: 22px;"><strong>coolors.co</strong> — Generate random palettes</li>
-        <li style="font-size: 22px;"><strong>colorhunt.co</strong> — Curated palettes</li>
-        <li style="font-size: 22px;"><strong>materialpalettes.com</strong> — Material Design colors</li>
-        <li style="font-size: 22px;"><strong>Realtime Colors</strong> — Preview on a real UI</li>
-      </ul>
-    </div>
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent-secondary);">Quick Tips</h3>
-      <ul style="margin-top: 12px;">
-        <li style="font-size: 22px;">Start with one color you like</li>
-        <li style="font-size: 22px;">Use tools to find complements</li>
-        <li style="font-size: 22px;">Test with real content, not lorem ipsum</li>
-        <li style="font-size: 22px;">Check contrast for readability</li>
-      </ul>
-    </div>
-  </div>
+<span class="section-number">04</span>
+<span class="eyebrow reveal d1">Tools</span>
+<h2 class="reveal d2">Where to Get <span class="highlight">Color Palettes</span></h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent);">Free Tools</h3>
+<ul style="margin-top: 12px;">
+<li style="font-size: 22px;"><strong>coolors.co</strong> — Generate random palettes</li>
+<li style="font-size: 22px;"><strong>colorhunt.co</strong> — Curated palettes</li>
+<li style="font-size: 22px;"><strong>materialpalettes.com</strong> — Material Design colors</li>
+<li style="font-size: 22px;"><strong>Realtime Colors</strong> — Preview on a real UI</li>
+</ul>
+</div>
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent-secondary);">Quick Tips</h3>
+<ul style="margin-top: 12px;">
+<li style="font-size: 22px;">Start with one color you like</li>
+<li style="font-size: 22px;">Use tools to find complements</li>
+<li style="font-size: 22px;">Test with real content, not lorem ipsum</li>
+<li style="font-size: 22px;">Check contrast for readability</li>
+</ul>
+</div>
+</div>
 </section>
-
 <!-- STUDENT EXPLAINER: Color system -->
 <section class="slide">
-  <span class="section-number">04</span>
-  <span class="eyebrow reveal d1">Use Color by Role</span>
-  <h2 class="reveal d2">A palette becomes useful when each color has a <span class="highlight-cyan">job</span></h2>
-  <div class="grid-3 reveal d3">
-    <div class="grid-card"><h3 style="font-size:25px;color:var(--accent);">Brand + action</h3><p style="font-size:20px;margin-top:10px;">Primary buttons, active navigation, important links.</p></div>
-    <div class="grid-card"><h3 style="font-size:25px;color:var(--accent-secondary);">Surface + text</h3><p style="font-size:20px;margin-top:10px;">Backgrounds, cards, borders, headings, and body copy.</p></div>
-    <div class="grid-card"><h3 style="font-size:25px;color:#22c55e;">Status</h3><p style="font-size:20px;margin-top:10px;">Success, warning, and error colors with matching icons or text.</p></div>
-  </div>
-  <div class="purple-card reveal d4" style="margin-top:22px;padding:24px 30px;">
-    <p style="font-size:22px;color:var(--foreground);"><strong>Accessibility rule:</strong> never use color alone to communicate meaning. Pair it with a label, icon, pattern, or position.</p>
-  </div>
+<span class="section-number">04</span>
+<span class="eyebrow reveal d1">Use Color by Role</span>
+<h2 class="reveal d2">A palette becomes useful when each color has a <span class="highlight-cyan">job</span></h2>
+<div class="grid-3 reveal d3">
+<div class="grid-card"><h3 style="font-size:25px;color:var(--accent);">Brand + action</h3><p style="font-size:20px;margin-top:10px;">Primary buttons, active navigation, important links.</p></div>
+<div class="grid-card"><h3 style="font-size:25px;color:var(--accent-secondary);">Surface + text</h3><p style="font-size:20px;margin-top:10px;">Backgrounds, cards, borders, headings, and body copy.</p></div>
+<div class="grid-card"><h3 style="font-size:25px;color:#22c55e;">Status</h3><p style="font-size:20px;margin-top:10px;">Success, warning, and error colors with matching icons or text.</p></div>
+</div>
+<div class="purple-card reveal d4" style="margin-top:22px;padding:24px 30px;">
+<p style="font-size:22px;color:var(--foreground);"><strong>Accessibility rule:</strong> never use color alone to communicate meaning. Pair it with a label, icon, pattern, or position.</p>
+</div>
 </section>
-
 <!-- SLIDE 16: Typography Basics -->
 <section class="slide" style="background: radial-gradient(ellipse at 40% 50%, rgba(168,85,247,0.1) 0%, transparent 50%), var(--gradient-1);">
-  <span class="section-number">05</span>
-  <span class="eyebrow reveal d1">Typography</span>
-  <h2 class="reveal d2"><span class="highlight">Typography</span> Basics</h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent);">Sans-Serif</h3>
-      <p style="font-size: 22px; margin-top: 8px;">Clean, modern, easy to read on screens</p>
-      <div class="font-demo">
-        <span style="font-size: 28px; font-family: 'Space Grotesk', sans-serif;">Aa Bb Cc 123</span>
-      </div>
-      <p style="font-size: 18px; margin-top: 8px;">Use for: body text, buttons, most UI</p>
-    </div>
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent-secondary);">Serif</h3>
-      <p style="font-size: 22px; margin-top: 8px;">Traditional, elegant, authoritative</p>
-      <div class="font-demo">
-        <span style="font-size: 28px; font-family: Georgia, serif;">Aa Bb Cc 123</span>
-      </div>
-      <p style="font-size: 18px; margin-top: 8px;">Use for: headings, blogs, premium feel</p>
-    </div>
-  </div>
+<span class="section-number">05</span>
+<span class="eyebrow reveal d1">Typography</span>
+<h2 class="reveal d2"><span class="highlight">Typography</span> Basics</h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent);">Sans-Serif</h3>
+<p style="font-size: 22px; margin-top: 8px;">Clean, modern, easy to read on screens</p>
+<div class="font-demo">
+<span style="font-size: 28px; font-family: 'Space Grotesk', sans-serif;">Aa Bb Cc 123</span>
+</div>
+<p style="font-size: 18px; margin-top: 8px;">Use for: body text, buttons, most UI</p>
+</div>
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent-secondary);">Serif</h3>
+<p style="font-size: 22px; margin-top: 8px;">Traditional, elegant, authoritative</p>
+<div class="font-demo">
+<span style="font-size: 28px; font-family: Georgia, serif;">Aa Bb Cc 123</span>
+</div>
+<p style="font-size: 18px; margin-top: 8px;">Use for: headings, blogs, premium feel</p>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 17: Font Size Hierarchy -->
 <section class="slide">
-  <span class="section-number">05</span>
-  <span class="eyebrow reveal d1">Type Scale</span>
-  <h2 class="reveal d2">Font Size <span class="highlight">Hierarchy</span></h2>
-  <div class="purple-card reveal d3">
-    <div style="line-height: 2.2;">
-      <span style="font-size: 40px; font-family: var(--font-display); color: var(--foreground);">Page Title (32-40px)</span><br>
-      <span style="font-size: 30px; font-family: var(--font-display); color: var(--foreground);">Section Heading (24-30px)</span><br>
-      <span style="font-size: 22px; font-family: var(--font-body); color: var(--foreground);">Subheading (18-22px)</span><br>
-      <span style="font-size: 18px; font-family: var(--font-body); color: var(--muted-foreground);">Body text (14-16px)</span><br>
-      <span style="font-size: 14px; font-family: var(--font-body); color: var(--muted-foreground);">Caption/label (12-14px)</span>
-    </div>
-    <p style="margin-top: 20px; font-size: 22px; color: var(--accent);">Rule: Use 2-3 different sizes max per screen. More sizes = visual chaos.</p>
-  </div>
+<span class="section-number">05</span>
+<span class="eyebrow reveal d1">Type Scale</span>
+<h2 class="reveal d2">Font Size <span class="highlight">Hierarchy</span></h2>
+<div class="purple-card reveal d3">
+<div style="line-height: 2.2;">
+<span style="font-size: 40px; font-family: var(--font-display); color: var(--foreground);">Page Title (32-40px)</span><br/>
+<span style="font-size: 30px; font-family: var(--font-display); color: var(--foreground);">Section Heading (24-30px)</span><br/>
+<span style="font-size: 22px; font-family: var(--font-body); color: var(--foreground);">Subheading (18-22px)</span><br/>
+<span style="font-size: 18px; font-family: var(--font-body); color: var(--muted-foreground);">Body text (14-16px)</span><br/>
+<span style="font-size: 14px; font-family: var(--font-body); color: var(--muted-foreground);">Caption/label (12-14px)</span>
+</div>
+<p style="margin-top: 20px; font-size: 22px; color: var(--accent);">Rule: Use 2-3 different sizes max per screen. More sizes = visual chaos.</p>
+</div>
 </section>
-
 <!-- SLIDE 18: Font Pairing -->
 <section class="slide">
-  <span class="section-number">05</span>
-  <span class="eyebrow reveal d1">Font Pairing</span>
-  <h2 class="reveal d2">Font Pairing Tips</h2>
-  <ul class="reveal d3">
-    <li><strong class="highlight">One display + one body font</strong> is enough for most apps</li>
-    <li><strong class="highlight">Max 2 fonts</strong> in your app. Never more than 3.</li>
-    <li><strong class="highlight">Google Fonts</strong> is free and works in FlutterFlow</li>
-    <li><strong class="highlight">Safe picks:</strong> Inter, Poppins, Nunito, Open Sans, Roboto</li>
-    <li><strong class="highlight">Avoid:</strong> Comic Sans, Papyrus, overly decorative fonts</li>
-  </ul>
-  <p class="reveal d4" style="margin-top: 20px; font-size: 24px;">FlutterFlow has Google Fonts built in. You can change fonts in 2 clicks.</p>
+<span class="section-number">05</span>
+<span class="eyebrow reveal d1">Font Pairing</span>
+<h2 class="reveal d2">Font Pairing Tips</h2>
+<ul class="reveal d3">
+<li><strong class="highlight">One display + one body font</strong> is enough for most apps</li>
+<li><strong class="highlight">Max 2 fonts</strong> in your app. Never more than 3.</li>
+<li><strong class="highlight">Google Fonts</strong> is free and works in FlutterFlow</li>
+<li><strong class="highlight">Safe picks:</strong> Inter, Poppins, Nunito, Open Sans, Roboto</li>
+<li><strong class="highlight">Avoid:</strong> Comic Sans, Papyrus, overly decorative fonts</li>
+</ul>
+<p class="reveal d4" style="margin-top: 20px; font-size: 24px;">FlutterFlow has Google Fonts built in. You can change fonts in 2 clicks.</p>
 </section>
-
 <!-- SLIDE 19: Spacing & Whitespace -->
 <section class="slide whitespace-slide">
-  <span class="section-number">06</span>
-  <span class="eyebrow reveal d1">Spacing</span>
-  <h2 class="reveal d2"><span class="highlight">Whitespace</span> is Your Friend</h2>
-  <div class="principle-box reveal d3" style="padding: 28px;">
-    <div>
-      <p style="font-size: 26px; color: var(--foreground);">Empty space is NOT wasted space. It makes content <strong>breathable</strong> and <strong>readable</strong>.</p>
-      <ul style="margin-top: 14px; gap: 12px;">
-        <li style="font-size: 22px;">Padding inside cards: 16-24px</li>
-        <li style="font-size: 22px;">Margin between sections: 24-40px</li>
-        <li style="font-size: 22px;">Line height: 1.4-1.6 for body text</li>
-        <li style="font-size: 22px;">Consistent spacing throughout</li>
-      </ul>
-      <p style="margin-top: 16px; font-size: 22px; color: var(--accent);">Cramped design = amateur look. Space = professional.</p>
-    </div>
-    <div>
-      <div style="padding: 16px; border: 1px dashed rgba(239,68,68,0.3); border-radius: 8px; margin-bottom: 16px;">
-        <span style="font-size: 16px; color: #ef4444;">❌ Cramped</span><br>
-        <span style="font-size: 16px; line-height: 1.1;">TitleDescriptionButtonLinkMore text all squished together with no breathing room at all</span>
-      </div>
-      <div style="padding: 20px; border: 1px dashed rgba(34,197,94,0.3); border-radius: 8px;">
-        <span style="font-size: 16px; color: #22c55e;">✅ Spacious</span><br><br>
-        <span style="font-size: 18px; font-weight: 600;">Title</span><br><br>
-        <span style="font-size: 15px; color: var(--muted-foreground);">Description with room</span><br><br>
-        <span style="font-size: 14px; color: var(--accent);">Button →</span>
-      </div>
-    </div>
-  </div>
+<span class="section-number">06</span>
+<span class="eyebrow reveal d1">Spacing · Visual Example</span>
+<h2 class="reveal d2"><span class="highlight">Whitespace</span> Makes Content Easier to Read</h2>
+<div class="principle-demo reveal d3">
+<div class="principle-guide">
+<div>
+<p style="color:var(--foreground);"><strong>Whitespace</strong> is the empty area that separates and protects content.</p>
+<ul>
+<li>Use padding inside components</li>
+<li>Use larger gaps between sections</li>
+<li>Let paragraphs breathe with line height</li>
+<li>Do not fill every available pixel</li>
+</ul>
+</div>
+<p class="principle-rule"><strong>Professional spacing:</strong> 16–24px inside cards and 24–40px between major sections.</p>
+</div>
+<div class="mockup-example bad">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>events.campus.app</span></div>
+<div class="mockup-canvas space-app space-bad"><div class="event-card"><span class="event-tag">WORKSHOP</span><h3>Build Your First Web App</h3><p>A beginner-friendly session covering interface planning, forms, and deployment.</p><div class="event-meta"><span>Aug 18</span><span>Lab 2</span><span>1:00 PM</span></div><div class="event-actions"><button>Register</button><button>Details</button></div></div><div class="event-card"><span class="event-tag">SEMINAR</span><h3>Designing for Real Users</h3><p>Learn how to observe, test, and improve a student project.</p><div class="event-meta"><span>Aug 22</span><span>AVR</span><span>9:00 AM</span></div><div class="event-actions"><button>Register</button><button>Details</button></div></div></div>
+<div class="mockup-caption"><strong>Cramped layout</strong><p>Tight padding and tiny gaps make separate pieces of information feel crowded together.</p></div>
+</div>
+<div class="mockup-example good">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>events.campus.app</span></div>
+<div class="mockup-canvas space-app space-good"><div class="event-card"><span class="event-tag">WORKSHOP</span><h3>Build Your First Web App</h3><p>A beginner-friendly session covering interface planning, forms, and deployment. Bring one simple project idea and leave with a working screen plan.</p><div class="event-meta"><span>📅 Aug 18</span><span>📍 Lab 2</span><span>🕐 1:00 PM</span></div><div class="event-actions"><button>Register</button><button>View details</button></div></div></div>
+<div class="mockup-caption"><strong>Breathing room</strong><p>Generous padding creates clear sections and helps the eye move through the content.</p></div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 20: Visual Hierarchy -->
 <section class="slide">
-  <span class="section-number">06</span>
-  <span class="eyebrow reveal d1">Hierarchy</span>
-  <h2 class="reveal d2">Visual <span class="highlight">Hierarchy</span></h2>
-  <div class="purple-card reveal d3">
-    <p style="font-size: 26px; color: var(--foreground); margin-bottom: 20px;">Guide the user's eye from most important to least important:</p>
-    <table style="margin: 0;">
-      <tr><th>Level</th><th>How to Achieve</th><th>Example</th></tr>
-      <tr><td style="color: var(--accent); font-weight: 700;">1st (Primary)</td><td>Biggest, boldest, colored</td><td>Page title, main CTA button</td></tr>
-      <tr><td style="color: var(--accent-secondary); font-weight: 700;">2nd (Secondary)</td><td>Medium size, semi-bold</td><td>Section headers, prices</td></tr>
-      <tr><td style="font-weight: 700;">3rd (Tertiary)</td><td>Normal size, regular weight</td><td>Body text, descriptions</td></tr>
-      <tr><td style="color: var(--muted-foreground);">4th (Minimal)</td><td>Small, light color</td><td>Timestamps, captions</td></tr>
-    </table>
-  </div>
+<span class="section-number">06</span>
+<span class="eyebrow reveal d1">Hierarchy · Visual Example</span>
+<h2 class="reveal d2">Visual <span class="highlight">Hierarchy</span> Guides the Next Action</h2>
+<div class="principle-demo reveal d3">
+<div class="principle-guide">
+<div>
+<p style="color:var(--foreground);"><strong>Hierarchy</strong> controls what users notice first, second, and last.</p>
+<ul>
+<li>Primary: biggest or strongest element</li>
+<li>Secondary: section headings and summaries</li>
+<li>Tertiary: normal details and descriptions</li>
+<li>Minimal: metadata, timestamps, captions</li>
+</ul>
+</div>
+<p class="principle-rule"><strong>Ask:</strong> What should the user do now? That element deserves the strongest emphasis.</p>
+</div>
+<div class="mockup-example bad">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>studyflow.app/dashboard</span></div>
+<div class="mockup-canvas hierarchy-app hierarchy-flat"><div class="topline"><span>Tuesday, August 18</span><button>Add task</button></div><div class="task-area"><div class="task-card"><h4>Submit database proposal</h4><p>Due today · Systems Analysis</p></div><div class="task-card"><h4>Review UI wireframes</h4><p>Due tomorrow · App Development</p></div><div class="task-card"><h4>Read Chapter 3</h4><p>Due Friday · Professional Ethics</p></div><div class="task-card"><h4>Update project notes</h4><p>No deadline · Personal</p></div></div></div>
+<div class="mockup-caption"><strong>Flat hierarchy</strong><p>Every task has the same weight, so the urgent item does not look urgent.</p></div>
+</div>
+<div class="mockup-example good">
+<div class="mockup-browserbar"><i></i><i></i><i></i><span>studyflow.app/dashboard</span></div>
+<div class="mockup-canvas hierarchy-app hierarchy-clear"><div class="topline"><span>TODAY · AUGUST 18</span><button>+ Add task</button></div><div class="task-area"><div class="priority"><small>NEXT PRIORITY · DUE 5:00 PM</small><h3>Submit database proposal</h3><p>Systems Analysis · Finalize the scope and upload the PDF.</p><button>Open task</button></div><div class="secondary-label">COMING UP</div><div class="task-card"><div><h4>Review UI wireframes</h4><p>Tomorrow · App Development</p></div><b>Tomorrow</b></div><div class="task-card"><div><h4>Read Chapter 3</h4><p>Professional Ethics</p></div><b>Friday</b></div></div></div>
+<div class="mockup-caption"><strong>Clear hierarchy</strong><p>The urgent task dominates, the main action is obvious, and later tasks become secondary.</p></div>
+</div>
+</div>
 </section>
-
 <!-- STUDENT EXPLAINER: Interface states -->
 <section class="slide">
-  <span class="section-number">07</span>
-  <span class="eyebrow reveal d1">Design Beyond the Ideal Case</span>
-  <h2 class="reveal d2">Every data screen needs more than its <span class="highlight">normal state</span></h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card"><h3 style="font-size:25px;color:var(--accent-secondary);">Loading</h3><p style="font-size:21px;margin-top:10px;">Show that the app is working and prevent repeated actions.</p></div>
-    <div class="grid-card"><h3 style="font-size:25px;color:var(--muted-foreground);">Empty</h3><p style="font-size:21px;margin-top:10px;">Explain why no content appears and suggest a useful next step.</p></div>
-    <div class="grid-card"><h3 style="font-size:25px;color:#22c55e;">Success</h3><p style="font-size:21px;margin-top:10px;">Confirm what changed and where the user can continue.</p></div>
-    <div class="grid-card"><h3 style="font-size:25px;color:#ef4444;">Error</h3><p style="font-size:21px;margin-top:10px;">Describe the problem in plain language and provide recovery.</p></div>
-  </div>
-  <p class="reveal d4" style="margin-top:20px;">These states are part of UX, not optional polish.</p>
+<span class="section-number">07</span>
+<span class="eyebrow reveal d1">Design Beyond the Ideal Case</span>
+<h2 class="reveal d2">Every data screen needs more than its <span class="highlight">normal state</span></h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card"><h3 style="font-size:25px;color:var(--accent-secondary);">Loading</h3><p style="font-size:21px;margin-top:10px;">Show that the app is working and prevent repeated actions.</p></div>
+<div class="grid-card"><h3 style="font-size:25px;color:var(--muted-foreground);">Empty</h3><p style="font-size:21px;margin-top:10px;">Explain why no content appears and suggest a useful next step.</p></div>
+<div class="grid-card"><h3 style="font-size:25px;color:#22c55e;">Success</h3><p style="font-size:21px;margin-top:10px;">Confirm what changed and where the user can continue.</p></div>
+<div class="grid-card"><h3 style="font-size:25px;color:#ef4444;">Error</h3><p style="font-size:21px;margin-top:10px;">Describe the problem in plain language and provide recovery.</p></div>
+</div>
+<p class="reveal d4" style="margin-top:20px;">These states are part of UX, not optional polish.</p>
 </section>
-
 <!-- SLIDE 22: Common UI Mistakes -->
 <section class="slide">
-  <span class="section-number">07</span>
-  <span class="eyebrow reveal d1">Avoid These</span>
-  <h2 class="reveal d2">Top UI <span class="highlight">Mistakes</span></h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card">
-      <ul>
-        <li style="font-size: 22px;">❌ Too many colors (rainbow effect)</li>
-        <li style="font-size: 22px;">❌ Tiny body text (below 16px on web)</li>
-        <li style="font-size: 22px;">❌ No whitespace (everything cramped)</li>
-        <li style="font-size: 22px;">❌ Inconsistent button styles</li>
-        <li style="font-size: 22px;">❌ Poor contrast (light gray on white)</li>
-      </ul>
-    </div>
-    <div class="grid-card">
-      <ul>
-        <li style="font-size: 22px;">❌ Random font sizes</li>
-        <li style="font-size: 22px;">❌ No clear call-to-action</li>
-        <li style="font-size: 22px;">❌ Walls of text</li>
-        <li style="font-size: 22px;">❌ Unclear icons (what does this do?)</li>
-        <li style="font-size: 22px;">❌ No loading states or feedback</li>
-      </ul>
-    </div>
-  </div>
+<span class="section-number">07</span>
+<span class="eyebrow reveal d1">Avoid These</span>
+<h2 class="reveal d2">Top UI <span class="highlight">Mistakes</span></h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card">
+<ul>
+<li style="font-size: 22px;">❌ Too many colors (rainbow effect)</li>
+<li style="font-size: 22px;">❌ Tiny body text (below 16px on web)</li>
+<li style="font-size: 22px;">❌ No whitespace (everything cramped)</li>
+<li style="font-size: 22px;">❌ Inconsistent button styles</li>
+<li style="font-size: 22px;">❌ Poor contrast (light gray on white)</li>
+</ul>
+</div>
+<div class="grid-card">
+<ul>
+<li style="font-size: 22px;">❌ Random font sizes</li>
+<li style="font-size: 22px;">❌ No clear call-to-action</li>
+<li style="font-size: 22px;">❌ Walls of text</li>
+<li style="font-size: 22px;">❌ Unclear icons (what does this do?)</li>
+<li style="font-size: 22px;">❌ No loading states or feedback</li>
+</ul>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 23: Common UI Patterns -->
 <section class="slide">
-  <span class="section-number">07</span>
-  <span class="eyebrow reveal d1">Web UI Patterns</span>
-  <h2 class="reveal d2">Patterns Web Users <span class="highlight">Expect</span></h2>
-  <div class="grid-3 reveal d3">
-    <div class="grid-card" style="text-align:center;"><p style="font-size:36px;">⌂</p><p style="font-size:20px;color:var(--foreground);"><strong>Logo + primary navigation</strong> in a consistent header or sidebar</p></div>
-    <div class="grid-card" style="text-align:center;"><p style="font-size:36px;">＋</p><p style="font-size:20px;color:var(--foreground);"><strong>Primary action</strong> visible in the page header</p></div>
-    <div class="grid-card" style="text-align:center;"><p style="font-size:36px;">↻</p><p style="font-size:20px;color:var(--foreground);"><strong>Refresh or auto-update</strong> for changing records</p></div>
-    <div class="grid-card" style="text-align:center;"><p style="font-size:36px;">⌖</p><p style="font-size:20px;color:var(--foreground);"><strong>Hover and focus states</strong> for interactive controls</p></div>
-    <div class="grid-card" style="text-align:center;"><p style="font-size:36px;">✓</p><p style="font-size:20px;color:var(--foreground);"><strong>Toast or inline message</strong> after an action</p></div>
-    <div class="grid-card" style="text-align:center;"><p style="font-size:36px;">…</p><p style="font-size:20px;color:var(--foreground);"><strong>Loading state</strong> while the browser waits</p></div>
-  </div>
-  <p class="reveal d4" style="margin-top:20px;font-size:22px;">The course project uses familiar responsive-web patterns so it works clearly on laptops and narrower screens.</p>
+<span class="section-number">07</span>
+<span class="eyebrow reveal d1">Web UI Patterns</span>
+<h2 class="reveal d2">Patterns Web Users <span class="highlight">Expect</span></h2>
+<div class="grid-3 reveal d3">
+<div class="grid-card" style="text-align:center;"><p style="font-size:36px;">⌂</p><p style="font-size:20px;color:var(--foreground);"><strong>Logo + primary navigation</strong> in a consistent header or sidebar</p></div>
+<div class="grid-card" style="text-align:center;"><p style="font-size:36px;">＋</p><p style="font-size:20px;color:var(--foreground);"><strong>Primary action</strong> visible in the page header</p></div>
+<div class="grid-card" style="text-align:center;"><p style="font-size:36px;">↻</p><p style="font-size:20px;color:var(--foreground);"><strong>Refresh or auto-update</strong> for changing records</p></div>
+<div class="grid-card" style="text-align:center;"><p style="font-size:36px;">⌖</p><p style="font-size:20px;color:var(--foreground);"><strong>Hover and focus states</strong> for interactive controls</p></div>
+<div class="grid-card" style="text-align:center;"><p style="font-size:36px;">✓</p><p style="font-size:20px;color:var(--foreground);"><strong>Toast or inline message</strong> after an action</p></div>
+<div class="grid-card" style="text-align:center;"><p style="font-size:36px;">…</p><p style="font-size:20px;color:var(--foreground);"><strong>Loading state</strong> while the browser waits</p></div>
+</div>
+<p class="reveal d4" style="margin-top:20px;font-size:22px;">The course project uses familiar responsive-web patterns so it works clearly on laptops and narrower screens.</p>
 </section>
-
 <!-- SLIDE 24: Material Design -->
 <section class="slide">
-  <span class="section-number">07</span>
-  <span class="eyebrow reveal d1">Design System</span>
-  <h2 class="reveal d2">Material Design</h2>
-  <div class="material-layout reveal d3">
-    <div class="material-points">
-      <div class="material-point"><strong>Components</strong><p>Reusable buttons, cards, dialogs, menus, tabs, and chips.</p></div>
-      <div class="material-point"><strong>Guidelines</strong><p>Rules for spacing, elevation, motion, typography, and color.</p></div>
-      <div class="material-point"><strong>Accessibility</strong><p>States, contrast, touch targets, and behavior are documented together.</p></div>
-    </div>
-    <div class="interface-reference interface-reference--compact">
-      <div class="interface-reference__bar"><span class="interface-reference__dots"><i></i><i></i><i></i></span><span>Material Design 3 · Buttons</span></div>
-      <div class="interface-reference__body"><img src="assets/student-visuals/material3-buttons.png" alt="Official Material Design 3 buttons documentation interface" /></div>
-      <div class="interface-reference__caption"><span>A design system connects a visible component with specifications and accessibility guidance.</span><span>m3.material.io</span></div>
-    </div>
-  </div>
+<span class="section-number">07</span>
+<span class="eyebrow reveal d1">Design System</span>
+<h2 class="reveal d2">Material Design</h2>
+<div class="material-layout reveal d3">
+<div class="material-points">
+<div class="material-point"><strong>Components</strong><p>Reusable buttons, cards, dialogs, menus, tabs, and chips.</p></div>
+<div class="material-point"><strong>Guidelines</strong><p>Rules for spacing, elevation, motion, typography, and color.</p></div>
+<div class="material-point"><strong>Accessibility</strong><p>States, contrast, touch targets, and behavior are documented together.</p></div>
+</div>
+<div class="interface-reference interface-reference--compact">
+<div class="interface-reference__bar"><span class="interface-reference__dots"><i></i><i></i><i></i></span><span>Material Design 3 · Buttons</span></div>
+<div class="interface-reference__body"><img alt="Official Material Design 3 buttons documentation interface" src="assets/student-visuals/material3-buttons.png"/></div>
+<div class="interface-reference__caption"><span>A design system connects a visible component with specifications and accessibility guidance.</span><span>m3.material.io</span></div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 25: Gestalt Principles -->
 <section class="slide">
-  <span class="section-number">08</span>
-  <span class="eyebrow reveal d1">Psychology</span>
-  <h2 class="reveal d2">Gestalt <span class="highlight">Principles</span></h2>
-  <p class="reveal d3">How the human brain perceives visual information:</p>
-  <div class="grid-2 reveal d4">
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent);">Similarity</h3>
-      <p style="font-size: 20px;">Similar items look like they belong together. Same colored buttons = same type of action.</p>
-    </div>
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent);">Closure</h3>
-      <p style="font-size: 20px;">Brain fills in gaps. You don't need borders on all sides to see a "box."</p>
-    </div>
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent);">Continuity</h3>
-      <p style="font-size: 20px;">Eyes follow lines and curves. Horizontal lists, progress bars.</p>
-    </div>
-    <div class="grid-card">
-      <h3 style="font-size: 24px; color: var(--accent);">Figure/Ground</h3>
-      <p style="font-size: 20px;">Users distinguish main content from background. Modals, overlays use this.</p>
-    </div>
-  </div>
+<span class="section-number">08</span>
+<span class="eyebrow reveal d1">Psychology</span>
+<h2 class="reveal d2">Gestalt <span class="highlight">Principles</span></h2>
+<p class="reveal d3">How the human brain perceives visual information:</p>
+<div class="grid-2 reveal d4">
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent);">Similarity</h3>
+<p style="font-size: 20px;">Similar items look like they belong together. Same colored buttons = same type of action.</p>
+</div>
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent);">Closure</h3>
+<p style="font-size: 20px;">Brain fills in gaps. You don't need borders on all sides to see a "box."</p>
+</div>
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent);">Continuity</h3>
+<p style="font-size: 20px;">Eyes follow lines and curves. Horizontal lists, progress bars.</p>
+</div>
+<div class="grid-card">
+<h3 style="font-size: 24px; color: var(--accent);">Figure/Ground</h3>
+<p style="font-size: 20px;">Users distinguish main content from background. Modals, overlays use this.</p>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 26: Good App Examples -->
 <section class="slide">
-  <span class="section-number">08</span>
-  <span class="eyebrow reveal d1">Inspiration</span>
-  <h2 class="reveal d2">Well-Designed Apps</h2>
-  <div class="app-reference-grid reveal d3">
-    <div class="app-reference">
-      <img src="assets/student-visuals/airbnb-app-2025.jpg" alt="Official Airbnb mobile interface with search and service tabs" style="object-position:center 18%;" />
-      <div class="app-reference__body"><strong>Airbnb</strong><p>Strong search hierarchy, visual cards, and familiar top-level tabs make discovery obvious.</p><span class="app-reference__source">Official Airbnb Newsroom</span></div>
-    </div>
-    <div class="app-reference">
-      <img src="assets/student-visuals/grab-interface-banner.png" alt="Official Grab Driver interface showing map, trip information, and primary action" style="object-position:center;" />
-      <div class="app-reference__body"><strong>Grab</strong><p>A map-first layout keeps route context visible while one green action receives priority.</p><span class="app-reference__source">Official Grab product guide</span></div>
-    </div>
-    <div class="app-reference">
-      <img src="assets/student-visuals/spotify-web-interface.png" alt="Official Spotify web interface showing navigation, content shelves, and album art" style="object-position:top center;" />
-      <div class="app-reference__body"><strong>Spotify</strong><p>Dark surfaces reduce distraction while artwork and repeated shelves organize discovery.</p><span class="app-reference__source">Official Spotify interface</span></div>
-    </div>
-  </div>
+<span class="section-number">08</span>
+<span class="eyebrow reveal d1">Inspiration</span>
+<h2 class="reveal d2">Well-Designed Apps</h2>
+<div class="app-reference-grid reveal d3">
+<div class="app-reference">
+<img alt="Official Airbnb mobile interface with search and service tabs" src="assets/student-visuals/airbnb-app-2025.jpg" style="object-position:center 18%;"/>
+<div class="app-reference__body"><strong>Airbnb</strong><p>Strong search hierarchy, visual cards, and familiar top-level tabs make discovery obvious.</p><span class="app-reference__source">Official Airbnb Newsroom</span></div>
+</div>
+<div class="app-reference">
+<img alt="Official Grab Driver interface showing map, trip information, and primary action" src="assets/student-visuals/grab-interface-banner.png" style="object-position:center;"/>
+<div class="app-reference__body"><strong>Grab</strong><p>A map-first layout keeps route context visible while one green action receives priority.</p><span class="app-reference__source">Official Grab product guide</span></div>
+</div>
+<div class="app-reference">
+<img alt="Official Spotify web interface showing navigation, content shelves, and album art" src="assets/student-visuals/spotify-web-interface.png" style="object-position:top center;"/>
+<div class="app-reference__body"><strong>Spotify</strong><p>Dark surfaces reduce distraction while artwork and repeated shelves organize discovery.</p><span class="app-reference__source">Official Spotify interface</span></div>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 27: UX Principles -->
 <section class="slide">
-  <span class="section-number">09</span>
-  <span class="eyebrow reveal d1">UX Rules</span>
-  <h2 class="reveal d2">Key UX <span class="highlight-cyan">Principles</span></h2>
-  <ul class="reveal d3">
-    <li><strong class="highlight">Don't make users think</strong> — If they're confused, your design failed</li>
-    <li><strong class="highlight">3-step rule</strong> — Core actions within 3 clear steps</li>
-    <li><strong class="highlight">Feedback always</strong> — Every action should have a visible response</li>
-    <li><strong class="highlight">Forgiveness</strong> — Let users undo mistakes easily</li>
-    <li><strong class="highlight">Progressive disclosure</strong> — Show only what's needed now</li>
-    <li><strong class="highlight">Familiarity</strong> — Use patterns users already know</li>
-  </ul>
+<span class="section-number">09</span>
+<span class="eyebrow reveal d1">UX Rules</span>
+<h2 class="reveal d2">Key UX <span class="highlight-cyan">Principles</span></h2>
+<ul class="reveal d3">
+<li><strong class="highlight">Don't make users think</strong> — If they're confused, your design failed</li>
+<li><strong class="highlight">3-step rule</strong> — Core actions within 3 clear steps</li>
+<li><strong class="highlight">Feedback always</strong> — Every action should have a visible response</li>
+<li><strong class="highlight">Forgiveness</strong> — Let users undo mistakes easily</li>
+<li><strong class="highlight">Progressive disclosure</strong> — Show only what's needed now</li>
+<li><strong class="highlight">Familiarity</strong> — Use patterns users already know</li>
+</ul>
 </section>
-
 <!-- SLIDE 28: Accessibility Basics -->
 <section class="slide">
-  <span class="section-number">09</span>
-  <span class="eyebrow reveal d1">Accessibility</span>
-  <h2 class="reveal d2">Design for <span class="highlight">Everyone</span></h2>
-  <div class="purple-card reveal d3">
-    <p style="font-size: 24px; color: var(--foreground); margin-bottom: 16px;">Not all users have perfect vision, motor skills, or tech literacy:</p>
-    <ul>
-      <li style="font-size: 22px; color: var(--foreground);"><strong>Contrast ratio:</strong> 4.5:1 minimum for text (use WebAIM contrast checker)</li>
-      <li style="font-size: 22px; color: var(--foreground);"><strong>Touch targets:</strong> Minimum 44x44px for buttons (fat fingers!)</li>
-      <li style="font-size: 22px; color: var(--foreground);"><strong>Font size:</strong> Never below 14px for body text</li>
-      <li style="font-size: 22px; color: var(--foreground);"><strong>Color alone:</strong> Don't rely only on color to convey meaning (add icons/text)</li>
-      <li style="font-size: 22px; color: var(--foreground);"><strong>Labels:</strong> Always label form fields, don't rely on placeholders</li>
-    </ul>
-  </div>
+<span class="section-number">09</span>
+<span class="eyebrow reveal d1">Accessibility</span>
+<h2 class="reveal d2">Design for <span class="highlight">Everyone</span></h2>
+<div class="purple-card reveal d3">
+<p style="font-size: 24px; color: var(--foreground); margin-bottom: 16px;">Not all users have perfect vision, motor skills, or tech literacy:</p>
+<ul>
+<li style="font-size: 22px; color: var(--foreground);"><strong>Contrast ratio:</strong> 4.5:1 minimum for text (use WebAIM contrast checker)</li>
+<li style="font-size: 22px; color: var(--foreground);"><strong>Touch targets:</strong> Minimum 44x44px for buttons (fat fingers!)</li>
+<li style="font-size: 22px; color: var(--foreground);"><strong>Font size:</strong> Never below 14px for body text</li>
+<li style="font-size: 22px; color: var(--foreground);"><strong>Color alone:</strong> Don't rely only on color to convey meaning (add icons/text)</li>
+<li style="font-size: 22px; color: var(--foreground);"><strong>Labels:</strong> Always label form fields, don't rely on placeholders</li>
+</ul>
+</div>
 </section>
-
 <!-- SLIDE 30: UI/UX Checklist -->
 <section class="slide">
-  <span class="section-number">10</span>
-  <span class="eyebrow reveal d1">Your Checklist</span>
-  <h2 class="reveal d2">UI/UX <span class="highlight">Checklist</span></h2>
-  <div class="grid-2 reveal d3">
-    <div class="grid-card">
-      <h3 style="font-size: 22px; color: var(--accent);">Visual Design (UI)</h3>
-      <ul style="margin-top: 8px;">
-        <li style="font-size: 20px;">☐ Consistent color palette (3-4 colors)</li>
-        <li style="font-size: 20px;">☐ Max 2 fonts</li>
-        <li style="font-size: 20px;">☐ Clear visual hierarchy</li>
-        <li style="font-size: 20px;">☐ Adequate whitespace</li>
-        <li style="font-size: 20px;">☐ Consistent button/card styles</li>
-        <li style="font-size: 20px;">☐ Good contrast (readable text)</li>
-        <li style="font-size: 20px;">☐ Aligned elements (no random placement)</li>
-      </ul>
-    </div>
-    <div class="grid-card">
-      <h3 style="font-size: 22px; color: var(--accent-secondary);">User Experience (UX)</h3>
-      <ul style="margin-top: 8px;">
-        <li style="font-size: 20px;">☐ Clear navigation (user always knows where they are)</li>
-        <li style="font-size: 20px;">☐ Feedback on all actions</li>
-        <li style="font-size: 20px;">☐ Error messages that help</li>
-        <li style="font-size: 20px;">☐ Loading states shown</li>
-        <li style="font-size: 20px;">☐ Core task in ≤ 3 clear steps</li>
-        <li style="font-size: 20px;">☐ Empty states handled</li>
-        <li style="font-size: 20px;">☐ Interactive controls ≥ 44px high</li>
-      </ul>
-    </div>
-  </div>
+<span class="section-number">10</span>
+<span class="eyebrow reveal d1">Your Checklist</span>
+<h2 class="reveal d2">UI/UX <span class="highlight">Checklist</span></h2>
+<div class="grid-2 reveal d3">
+<div class="grid-card">
+<h3 style="font-size: 22px; color: var(--accent);">Visual Design (UI)</h3>
+<ul style="margin-top: 8px;">
+<li style="font-size: 20px;">☐ Consistent color palette (3-4 colors)</li>
+<li style="font-size: 20px;">☐ Max 2 fonts</li>
+<li style="font-size: 20px;">☐ Clear visual hierarchy</li>
+<li style="font-size: 20px;">☐ Adequate whitespace</li>
+<li style="font-size: 20px;">☐ Consistent button/card styles</li>
+<li style="font-size: 20px;">☐ Good contrast (readable text)</li>
+<li style="font-size: 20px;">☐ Aligned elements (no random placement)</li>
+</ul>
+</div>
+<div class="grid-card">
+<h3 style="font-size: 22px; color: var(--accent-secondary);">User Experience (UX)</h3>
+<ul style="margin-top: 8px;">
+<li style="font-size: 20px;">☐ Clear navigation (user always knows where they are)</li>
+<li style="font-size: 20px;">☐ Feedback on all actions</li>
+<li style="font-size: 20px;">☐ Error messages that help</li>
+<li style="font-size: 20px;">☐ Loading states shown</li>
+<li style="font-size: 20px;">☐ Core task in ≤ 3 clear steps</li>
+<li style="font-size: 20px;">☐ Empty states handled</li>
+<li style="font-size: 20px;">☐ Interactive controls ≥ 44px high</li>
+</ul>
+</div>
+</div>
 </section>
-
 <!-- SLIDE 32: Session Recap -->
 <section class="slide">
-  <span class="section-number">10</span>
-  <span class="eyebrow reveal d1">Recap</span>
-  <h2 class="reveal d2">Key Takeaways</h2>
-  <ul class="reveal d3">
-    <li><strong class="highlight">UI</strong> = looks, <strong class="highlight-cyan">UX</strong> = feels. Both matter equally.</li>
-    <li><strong class="highlight">CARP:</strong> Contrast, Alignment, Repetition, Proximity</li>
-    <li><strong class="highlight">Colors:</strong> 3-4 max, 60-30-10 rule, colors have meaning</li>
-    <li><strong class="highlight">Typography:</strong> 2 fonts max, clear size hierarchy</li>
-    <li><strong class="highlight">Whitespace:</strong> Your best friend. Use it generously.</li>
-    <li><strong class="highlight">Visual hierarchy:</strong> Guide the eye from most to least important</li>
-    <li><strong class="highlight">Patterns:</strong> Use what users already know (Material Design)</li>
-  </ul>
+<span class="section-number">10</span>
+<span class="eyebrow reveal d1">Recap</span>
+<h2 class="reveal d2">Key Takeaways</h2>
+<ul class="reveal d3">
+<li><strong class="highlight">UI</strong> = looks, <strong class="highlight-cyan">UX</strong> = feels. Both matter equally.</li>
+<li><strong class="highlight">CARP:</strong> Contrast, Alignment, Repetition, Proximity</li>
+<li><strong class="highlight">Colors:</strong> 3-4 max, 60-30-10 rule, colors have meaning</li>
+<li><strong class="highlight">Typography:</strong> 2 fonts max, clear size hierarchy</li>
+<li><strong class="highlight">Whitespace:</strong> Your best friend. Use it generously.</li>
+<li><strong class="highlight">Visual hierarchy:</strong> Guide the eye from most to least important</li>
+<li><strong class="highlight">Patterns:</strong> Use what users already know (Material Design)</li>
+</ul>
 </section>
-
 <!-- SLIDE 33: Next Session -->
 <section class="slide" style="background: radial-gradient(ellipse at 50% 50%, rgba(168,85,247,0.15) 0%, transparent 60%), var(--gradient-1); align-items:center; text-align:center;">
-  <span class="eyebrow reveal d1">Coming Up</span>
-  <h2 class="reveal d2">Wireframing App Screens</h2>
-  <div class="purple-card reveal d3" style="max-width:900px;margin:30px auto 0;">
-    <p style="font-size:27px;color:var(--foreground);text-align:center;">The next lesson introduces low-fidelity wireframes: quick screen plans made from boxes, labels, and simple navigation connections.</p>
-  </div>
-  <p class="reveal d4" style="margin-top:28px;text-align:center;">Wireframes turn the screen list and user flow into a visible interface structure before detailed styling begins.</p>
+<span class="eyebrow reveal d1">Coming Up</span>
+<h2 class="reveal d2">Wireframing App Screens</h2>
+<div class="purple-card reveal d3" style="max-width:900px;margin:30px auto 0;">
+<p style="font-size:27px;color:var(--foreground);text-align:center;">The next lesson introduces low-fidelity wireframes: quick screen plans made from boxes, labels, and simple navigation connections.</p>
+</div>
+<p class="reveal d4" style="margin-top:28px;text-align:center;">Wireframes turn the screen list and user flow into a visible interface structure before detailed styling begins.</p>
 </section>
 <script src="assets/student-visuals/image-lightbox.js?v=2"></script>
-
-
-
-<script id="lesson-mobile-accessibility-script">
-(function () {
-    'use strict';
-
-    const MOBILE_QUERY = '(max-width: 1024px), (hover: none), (pointer: coarse)';
-    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur, .step';
-    const CANVAS_W = 1920;
-    const CANVAS_H = 1080;
-    let zoomMultiplier = 1;
-    let userAdjustedZoom = false;
-    let deckPatched = false;
-
-    function rgbaParts(value) {
-        if (!value) return null;
-        const match = value.match(/rgba?\(\s*([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)/i);
-        if (!match) return null;
-        return {
-            r: Number(match[1]), g: Number(match[2]), b: Number(match[3]),
-            a: match[4] == null ? 1 : Number(match[4])
-        };
-    }
-
-    function luminance(rgb) {
-        const linear = [rgb.r, rgb.g, rgb.b].map((v) => {
-            v /= 255;
-            return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-        });
-        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
-    }
-
-    function applyReadableSurfaceClasses() {
-        document.querySelectorAll('.slide *').forEach((el) => {
-            if (!(el instanceof HTMLElement)) return;
-            const cs = getComputedStyle(el);
-            const color = rgbaParts(cs.backgroundColor);
-            if (!color || color.a < 0.62) return;
-            const lum = luminance(color);
-            if (lum > 0.68) {
-                el.classList.add('lesson-light-surface');
-                el.classList.remove('lesson-dark-surface');
-            } else if (lum < 0.20) {
-                el.classList.add('lesson-dark-surface');
-                el.classList.remove('lesson-light-surface');
-            }
-        });
-    }
-
-    function forceSlideContentVisible(slide) {
-        if (!slide) return;
-        slide.classList.add('visible', 'reveals-played');
-        slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
-            try { el.getAnimations().forEach((animation) => animation.cancel()); } catch (_) {}
-            if (el.classList.contains('step')) el.classList.add('step-shown');
-            el.style.removeProperty('opacity');
-            el.style.removeProperty('visibility');
-            el.style.removeProperty('transform');
-            el.style.removeProperty('filter');
-        });
-    }
-
-    function forceAllContentVisible() {
-        document.documentElement.classList.add('reveals-ready', 'mobile-show-all-content');
-        document.querySelectorAll('.slide').forEach(forceSlideContentVisible);
-    }
-
-    function patchDeckForMobile() {
-        const deck = window.slides;
-        if (!deck || deckPatched || !window.matchMedia(MOBILE_QUERY).matches) return;
-        deckPatched = true;
-        deck._playSlideReveals = forceSlideContentVisible;
-        deck._resetSlideReveals = forceSlideContentVisible;
-        deck._rewindSlide = forceSlideContentVisible;
-        deck.advance = function () { this.next(); };
-        deck.retreat = function () { this.prev(); };
-        if (Array.isArray(deck.slides)) deck.slides.forEach(forceSlideContentVisible);
-    }
-
-    function currentDeckIndex() {
-        const deck = window.slides;
-        if (deck && Number.isInteger(deck.currentSlide)) return deck.currentSlide;
-        const id = location.hash.replace(/^#/, '');
-        const slides = Array.from(document.querySelectorAll('.slide'));
-        const hashIndex = slides.findIndex((slide) => slide.id === id);
-        return hashIndex >= 0 ? hashIndex : 0;
-    }
-
-    function applyManualZoom() {
-        if (!window.matchMedia(MOBILE_QUERY).matches) return;
-        document.querySelectorAll('.slide-scale').forEach((scaleEl) => {
-            const rawBase = scaleEl.style.getPropertyValue('--slide-scale') || getComputedStyle(scaleEl).getPropertyValue('--slide-scale');
-            const base = parseFloat(rawBase) || Math.max(window.innerWidth / CANVAS_W, 0.46);
-            const effective = Math.max(0.15, Math.min(1.4, base * zoomMultiplier));
-            const width = CANVAS_W * effective;
-            const height = CANVAS_H * effective;
-            scaleEl.style.setProperty('width', width + 'px', 'important');
-            scaleEl.style.setProperty('height', height + 'px', 'important');
-            scaleEl.style.setProperty('margin', `max(16px, calc((100dvh - ${height}px) / 2)) auto`, 'important');
-            const slide = scaleEl.querySelector('.slide');
-            if (slide) slide.style.setProperty('transform', `scale(${effective})`, 'important');
-            const viewport = scaleEl.parentElement;
-            if (viewport) requestAnimationFrame(() => {
-                viewport.scrollLeft = Math.max(0, (viewport.scrollWidth - viewport.clientWidth) / 2);
-            });
-        });
-    }
-
-    function setFitZoom() {
-        const firstScale = document.querySelector('.slide-scale');
-        const rawBase = firstScale?.style.getPropertyValue('--slide-scale') || getComputedStyle(firstScale || document.documentElement).getPropertyValue('--slide-scale');
-        const base = parseFloat(rawBase) || Math.max(window.innerWidth / CANVAS_W, 0.46);
-        const fitScale = Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H);
-        zoomMultiplier = Math.max(0.28, Math.min(1, fitScale / base));
-        applyManualZoom();
-    }
-
-    function buildControls() {
-        if (document.querySelector('.lesson-slide-controls')) return;
-        const slides = Array.from(document.querySelectorAll('.slide'));
-        if (!slides.length) return;
-
-        const controls = document.createElement('div');
-        controls.className = 'lesson-slide-controls';
-        controls.setAttribute('role', 'navigation');
-        controls.setAttribute('aria-label', 'Presentation controls');
-        controls.innerHTML = `
-            <div class="lesson-slide-controls__group">
-                <button type="button" data-action="previous" aria-label="Previous slide">‹ Prev</button>
-                <span class="lesson-slide-controls__count" aria-live="polite">1 / ${slides.length}</span>
-                <button type="button" data-action="next" aria-label="Next slide">Next ›</button>
-            </div>
-            <span class="lesson-slide-controls__divider" aria-hidden="true"></span>
-            <div class="lesson-slide-controls__group" aria-label="Zoom controls">
-                <button type="button" data-action="zoom-out" aria-label="Zoom out">−</button>
-                <button type="button" data-action="fit" aria-label="Fit entire slide">Fit</button>
-                <button type="button" data-action="zoom-in" aria-label="Zoom in">+</button>
-            </div>`;
-        document.body.appendChild(controls);
-
-        const count = controls.querySelector('.lesson-slide-controls__count');
-        const previous = controls.querySelector('[data-action="previous"]');
-        const next = controls.querySelector('[data-action="next"]');
-
-        function update() {
-            const index = Math.max(0, Math.min(slides.length - 1, currentDeckIndex()));
-            count.textContent = `${index + 1} / ${slides.length}`;
-            previous.disabled = index <= 0;
-            next.disabled = index >= slides.length - 1;
-        }
-
-        controls.addEventListener('click', (event) => {
-            const button = event.target.closest('button[data-action]');
-            if (!button) return;
-            const deck = window.slides;
-            switch (button.dataset.action) {
-                case 'previous':
-                    if (deck?.prev) deck.prev();
-                    else slides[Math.max(0, currentDeckIndex() - 1)]?.scrollIntoView({behavior:'smooth'});
-                    break;
-                case 'next':
-                    if (deck?.next) deck.next();
-                    else slides[Math.min(slides.length - 1, currentDeckIndex() + 1)]?.scrollIntoView({behavior:'smooth'});
-                    break;
-                case 'zoom-in':
-                    userAdjustedZoom = true;
-                    zoomMultiplier = Math.min(2.2, zoomMultiplier + 0.15);
-                    applyManualZoom();
-                    break;
-                case 'zoom-out':
-                    userAdjustedZoom = true;
-                    zoomMultiplier = Math.max(0.28, zoomMultiplier - 0.15);
-                    applyManualZoom();
-                    break;
-                case 'fit':
-                    userAdjustedZoom = false;
-                    setFitZoom();
-                    break;
-            }
-            setTimeout(update, 120);
-            setTimeout(forceAllContentVisible, 180);
-        });
-
-        window.addEventListener('hashchange', update);
-        document.addEventListener('scroll', () => requestAnimationFrame(update), {passive:true});
-        setInterval(update, 700);
-        update();
-    }
-
-    function initialize() {
-        applyReadableSurfaceClasses();
-        buildControls();
-        if (window.matchMedia(MOBILE_QUERY).matches) {
-            forceAllContentVisible();
-            patchDeckForMobile();
-            setTimeout(() => {
-                forceAllContentVisible();
-                patchDeckForMobile();
-                setFitZoom();
-            }, 120);
-            setTimeout(forceAllContentVisible, 600);
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize, {once:true});
-    } else {
-        initialize();
-    }
-
-    window.addEventListener('load', () => {
-        applyReadableSurfaceClasses();
-        if (window.matchMedia(MOBILE_QUERY).matches) {
-            forceAllContentVisible();
-            patchDeckForMobile();
-            if (userAdjustedZoom) applyManualZoom(); else setFitZoom();
-        }
-    });
-    window.addEventListener('resize', () => setTimeout(() => {
-        applyReadableSurfaceClasses();
-        if (window.matchMedia(MOBILE_QUERY).matches) {
-            forceAllContentVisible();
-            patchDeckForMobile();
-            if (userAdjustedZoom) applyManualZoom(); else setFitZoom();
-        }
-    }, 180));
-    window.addEventListener('orientationchange', () => setTimeout(() => location.reload(), 250));
-})();
-</script>
-
 </body>
 </html>
